@@ -26,4 +26,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: pyWiki Lite
-        path: src/dist/windows
+        path: dist/
