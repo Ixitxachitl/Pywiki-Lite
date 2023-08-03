@@ -5,10 +5,10 @@ block_cipher = None
 
 
 a = Analysis(
-    ['C:/Users/krame/Downloads/pywiki-main/Pywiki Lite/pywiki_lite.py'],
+    ['pywiki_lite.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:/Users/krame/Downloads/pywiki-main/Pywiki Lite/icon.ico', '.')],
+    datas=[('icon.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['C:\\Users\\krame\\Downloads\\pywiki-main\\Pywiki Lite\\icon.ico'],
+    icon=['icon.ico'],
 )
