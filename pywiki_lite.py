@@ -61,6 +61,8 @@ class TwitchBotGUI(tk.Tk):
         self.create_widgets()
 
         # Load configuration from the INI file
+        if not os.path.exists('config.ini'):
+            self.save_configuration()
         self.load_configuration()
 
         # Bind the on_exit function to the closing event of the Tkinter window
