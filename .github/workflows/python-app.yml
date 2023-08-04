@@ -33,7 +33,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install python-tk
+        sudo apt-get update        
+        sudo apt-get install python3-tkinter
         python -m pip install --upgrade pip
         pip install irc openai DateTime
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
