@@ -34,7 +34,7 @@ def resource_path(relative_path):
 class TwitchBotGUI(tk.Tk):
 
     def get_version(self):
-        return "1.08"  # Replace this with your actual version number
+        return "1.09"  # Replace this with your actual version number
     def __init__(self):
 
         parser = argparse.ArgumentParser(description="pyWiki Lite")
