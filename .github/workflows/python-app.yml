@@ -31,7 +31,7 @@ jobs:
         path: src/dist/
 
     - name: version
-      run: echo "name=version::$('./src/dist/pyWiki Lite.exe' --version) >> $GITHUB_OUTPUT"
+      run: echo "name=version::$('src/dist/pyWiki Lite.exe' --version) >> $GITHUB_OUTPUT"
       id: version
     - name: release
       uses: actions/create-release@v1
