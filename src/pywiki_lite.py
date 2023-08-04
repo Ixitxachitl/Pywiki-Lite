@@ -34,7 +34,7 @@ def resource_path(relative_path):
 class TwitchBotGUI(tk.Tk):
 
     def get_version(self):
-        return "1.07"  # Replace this with your actual version number
+        return "1.08"  # Replace this with your actual version number
     def __init__(self):
 
         parser = argparse.ArgumentParser(description="pyWiki Lite")
@@ -443,8 +443,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             'ziehir': 'Zie/Hir'
         }
 
-        pronouns = r[0]['pronoun_id'] if r else 'theythem'
-        pronoun = pronoun_mapping.get(pronouns, 'They/Them')
+        pronouns = r[0]['pronoun_id'] if r else 'unknown'
+        pronoun = pronoun_mapping.get(pronouns, 'unknown')
 
         print('Got ' + author + ' pronouns ' + pronoun)
         app.append_to_log('Got ' + author + ' pronouns ' + pronoun)
