@@ -28,10 +28,10 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: pyWiki Lite
-        path: ./dist/
+        path: src/dist/
 
     - name: version
-      run: echo "::set-output name=version::$(./src/pyWiki Lite.py --version)"
+      run: echo "::set-output name=version::$('./src/pyWiki Lite.py' --version)"
       id: version
     - name: release
       uses: actions/create-release@v1
