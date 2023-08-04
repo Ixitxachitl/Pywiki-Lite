@@ -5,4 +5,5 @@
 * Channel: Whatever you want, only one.
 * OpenAI API Key: https://platform.openai.com/
 <br />
-![image](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/35a29a79-81e9-4b4c-8b36-372bfafbaec4)
+
+![screenshot pywiki](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/1a6750f6-ce6d-478b-b60c-33aa4fab962b)
