@@ -28,10 +28,10 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: pyWiki Lite
-        path: src/dist/
+        path: src/dist/windows
 
     - name: version
-      run: echo "name=version::$(${{github.workspace}}'/src/dist/pyWiki Lite.exe' --version) >> $GITHUB_OUTPUT"
+      run: echo "name=version::$('/home/runner/work/Pywiki-Lite/Pywiki-Lite/src/dist/windows/pyWiki Lite.exe' --version) >> $GITHUB_OUTPUT"
       id: version
     - name: release
       uses: actions/create-release@v1
@@ -50,6 +50,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{github.workspace}}/src/dist/pyWiki Lite.zip
+        asset_path: /home/runner/work/Pywiki-Lite/Pywiki-Lite/src/dist/windows/pyWiki Lite.exe
         asset_name: pyWiki Lite.zip
         asset_content_type: application/zip
