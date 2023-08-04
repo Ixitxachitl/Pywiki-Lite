@@ -195,7 +195,7 @@ class TwitchBotGUI(tk.Tk):
     def write_to_text_file(self, file_path, content):
         try:
             with open(file_path, 'w') as file:
-                file.write(content)
+                file.write(content.encode("utf-8"))
             print(f"Successfully wrote to {file_path}")
         except Exception as e:
             print(f"Error occurred while writing to {file_path}: {e}")
