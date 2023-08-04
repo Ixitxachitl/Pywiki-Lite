@@ -17,11 +17,9 @@ import openai
 from datetime import datetime, timezone
 from tkinter import messagebox, ttk
 import tkinter.scrolledtext as tkscrolled
-
-
 import os
-
 from irc.dict import IRCDict
+import argparse
 
 
 def resource_path(relative_path):
@@ -34,7 +32,19 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 class TwitchBotGUI(tk.Tk):
+
+    def get_version(self):
+        return "1.07"  # Replace this with your actual version number
     def __init__(self):
+
+        parser = argparse.ArgumentParser(description="pyWiki Lite")
+        parser.add_argument("--version", action="store_true", help="Show the version number")
+        args = parser.parse_args()
+
+        if args.version:
+            print(self.get_version())
+            sys.exit()
+
         super().__init__()
 
         self.title("pyWiki Lite")
@@ -83,7 +93,7 @@ class TwitchBotGUI(tk.Tk):
         self.append_to_log(self.openai_model_entry.get() + ' set')
 
     def show_about_popup(self):
-        about_text = "pyWiki Lite v1.06\n©2023 Ixitxachitl\nAnd ChatGPT"
+        about_text = "pyWiki Lite " + get_version() + "\n©2023 Ixitxachitl\nAnd ChatGPT"
         messagebox.showinfo("About", about_text)
 
     def append_to_log(self, message):
