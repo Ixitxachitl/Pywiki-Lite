@@ -1,10 +1,11 @@
+import os
 import ctypes
 import json
 import queue
 import sys
 import threading
 import time
-import tkinter as tk
+
 import configparser
 import random
 import re
@@ -15,9 +16,10 @@ import requests
 
 import openai
 from datetime import datetime, timezone
-from tkinter import messagebox, ttk
-import tkinter.scrolledtext as tkscrolled
-import os
+if os.environ.get('TERM') is None:
+    from tkinter import messagebox, ttk
+    import tkinter.scrolledtext as tkscrolled
+    import tkinter as tk
 from irc.dict import IRCDict
 import argparse
 

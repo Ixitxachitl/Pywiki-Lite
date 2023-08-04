@@ -34,7 +34,7 @@ jobs:
     - name: Version
       run: |
         chmod +x /home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py 
-        echo "name=version::$('/home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py' --version) >> $GITHUB_OUTPUT"
+        echo "name=version::$(/home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py --version) >> $GITHUB_OUTPUT"
       id: version
 
     - name: Release
