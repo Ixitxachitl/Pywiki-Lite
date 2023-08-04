@@ -34,7 +34,7 @@ def resource_path(relative_path):
 class TwitchBotGUI(tk.Tk):
 
     def get_version(self):
-        return "1.09"  # Replace this with your actual version number
+        return "1.10"  # Replace this with your actual version number
     def __init__(self):
 
         parser = argparse.ArgumentParser(description="pyWiki Lite")
@@ -388,11 +388,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 },
             },
             {
-                "name": "get_next_launch",
-                "description": "Get the next scheduled space launch",
+                "name": "get_launch",
+                "description": "Get the next or previous scheduled space launch",
                 "parameters": {
                     "type": "object",
-                    "properties": {},
+                    "properties": {
+                        "when": {
+                            "type": "string",
+                            "enum": ["next", "previous"]
+                        },
+                    },
                 },
             },
         ]
@@ -424,11 +429,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c.cap('REQ', ':twitch.tv/commands')
         c.join(self.channel)
 
-    def get_next_launch(self, **kwargs):
-        url = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?mode=list'
+    def get_launch(self, when, **kwargs):
+        if when == 'next':
+            url = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?mode=list'
+        else:
+            url = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?mode=list'
         return json.dumps(requests.get(url).json()["results"][0])
 
-    def get_pronouns(self, author):
+    def get_pronouns(self, author, **kwargs):
         # Check if pronouns exist in the cache
         if author in self.pronoun_cache:
             return self.pronoun_cache[author]
@@ -543,13 +551,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             # Note: the JSON response may not always be valid; be sure to handle errors
                             available_functions = {
                                 "get_user_pronouns": self.get_pronouns,
-                                "get_next_launch": self.get_next_launch,
+                                "get_launch": self.get_launch,
                             }  # only one function in this example, but you can have multiple
                             function_name = response_message["function_call"]["name"]
                             function_to_call = available_functions[function_name]
                             function_args = json.loads(response_message["function_call"]["arguments"])
                             function_response = function_to_call(
                                 author=function_args.get("user"),
+                                when=function_args.get("when"),
                             )
 
                             # Step 4: send the info on the function call and function response to GPT
