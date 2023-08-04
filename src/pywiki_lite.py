@@ -20,10 +20,9 @@ import argparse
 import openai
 from datetime import datetime, timezone
 
-if sys.platform.startswith('win'):
-    from tkinter import messagebox, ttk
-    import tkinter.scrolledtext as tkscrolled
-    import tkinter as tk
+from tkinter import messagebox, ttk
+import tkinter.scrolledtext as tkscrolled
+import tkinter as tk
 
 
 def resource_path(relative_path):

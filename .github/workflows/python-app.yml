@@ -33,6 +33,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        sudo apt-get install python-tk
         python -m pip install --upgrade pip
         pip install irc openai DateTime
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
