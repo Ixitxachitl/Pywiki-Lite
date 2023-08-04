@@ -31,20 +31,14 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+
+def get_version():
+    return "1.11"  # Version Number
+
+
 class TwitchBotGUI(tk.Tk):
 
-    def get_version(self):
-        return "1.10"  # Replace this with your actual version number
     def __init__(self):
-
-        parser = argparse.ArgumentParser(description="pyWiki Lite")
-        parser.add_argument("--version", action="store_true", help="Show the version number")
-        args = parser.parse_args()
-
-        if args.version:
-            print(self.get_version())
-            sys.exit()
-
         super().__init__()
 
         self.title("pyWiki Lite")
@@ -93,7 +87,7 @@ class TwitchBotGUI(tk.Tk):
         self.append_to_log(self.openai_model_entry.get() + ' set')
 
     def show_about_popup(self):
-        about_text = "pyWiki Lite " + self.get_version() + "\n©2023 Ixitxachitl\nAnd ChatGPT"
+        about_text = "pyWiki Lite " + get_version() + "\n©2023 Ixitxachitl\nAnd ChatGPT"
         messagebox.showinfo("About", about_text)
 
     def append_to_log(self, message):
@@ -126,12 +120,12 @@ class TwitchBotGUI(tk.Tk):
         tk.Label(self, text="pyWiki Lite Configuration", font=("Helvetica", 16)).grid(row=0, column=0, columnspan=2,
                                                                                       pady=10, padx=10, sticky='w')
         tk.Label(self, text="Context", font=("Helvetica", 16)).grid(row=0, column=3, columnspan=1,
-                                                                                      pady=10, padx=(0, 10), sticky='w')
+                                                                    pady=10, padx=(0, 10), sticky='w')
 
         # Twitch Bot Username Entry
         tk.Label(self, text="Username:").grid(row=1, column=0, padx=(10, 5), sticky="e")
         self.bot_username_entry = tk.Entry(self, textvariable=self.username)
-        self.bot_username_entry.grid(row=1, column=1, sticky="ew", padx=(0, 10), pady=(2,0))
+        self.bot_username_entry.grid(row=1, column=1, sticky="ew", padx=(0, 10), pady=(2, 0))
 
         # ClientID Entry
         tk.Label(self, text="ClientID:").grid(row=2, column=0, padx=(10, 5), sticky="e")
@@ -186,10 +180,11 @@ class TwitchBotGUI(tk.Tk):
 
         # Create a Text widget to display bot messages
         self.log_text = tkscrolled.ScrolledText(self, wrap="word", height=11, state=tk.DISABLED)
-        self.log_text.grid(row=8, column=0, columnspan=2, padx=10, pady=(3,0), sticky="w", )
+        self.log_text.grid(row=8, column=0, columnspan=2, padx=10, pady=(3, 0), sticky="w", )
 
         # Create a Text widget to display the input string
-        self.input_text =  tkscrolled.ScrolledText(self, wrap="word", height=22, width=40, undo=True, autoseparators=True, maxundo=-1)
+        self.input_text = tkscrolled.ScrolledText(self, wrap="word", height=22, width=40, undo=True,
+                                                  autoseparators=True, maxundo=-1)
         self.input_text.grid(row=1, column=3, columnspan=4, rowspan=9, padx=(0, 10), pady=2, sticky="ne")
 
     def write_to_text_file(self, file_path, content):
@@ -276,8 +271,8 @@ class TwitchBotGUI(tk.Tk):
             if hasattr(self, "bot"):
                 self.bot.connection.quit()
                 self.bot.disconnect()
-                #self.bot.die()
-                #self.bot_thread.join()
+                # self.bot.die()
+                # self.bot_thread.join()
                 self.terminate_thread(self.bot_thread)
                 print("Stopped")
                 self.append_to_log("Stopped")
@@ -516,22 +511,22 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print('Received command: ' + cmd)
             app.append_to_log('Received command: ' + cmd)
             self.do_command(e, cmd)
-        elif message.lower() == (self.username + " yes").lower() or message.lower() ==\
+        elif message.lower() == (self.username + " yes").lower() or message.lower() == \
                 ('@' + self.username + " yes").lower():
             c.privmsg(self.channel, ":)")
             app.append_to_log(self.username + ': ' + ":)")
-        elif message.lower() == (self.username + " no").lower() or message.lower() ==\
+        elif message.lower() == (self.username + " no").lower() or message.lower() == \
                 ('@' + self.username + " no").lower():
             c.privmsg(self.channel, ":(")
             app.append_to_log(self.username + ': ' + ":(")
-        elif message.lower().startswith(("thanks " + self.username).lower()) or\
+        elif message.lower().startswith(("thanks " + self.username).lower()) or \
                 message.lower().startswith(("thanks @" + self.username).lower()):
             c.privmsg(self.channel, "np")
             app.append_to_log(self.username + ': ' + "np")
         else:
             rand_chat = random.random()
-            #print(str(round(rand_chat*100,3)) + ':' + str(app.frequency_slider.get()))
-            if rand_chat <= float(app.frequency_slider.get()) / 100 or self.username.lower() in message.lower() or\
+            # print(str(round(rand_chat*100,3)) + ':' + str(app.frequency_slider.get()))
+            if rand_chat <= float(app.frequency_slider.get()) / 100 or self.username.lower() in message.lower() or \
                     "@" + self.username.lower() in message.lower():
                 self.input_text = app.input_text.get('1.0', 'end')
                 retry = 0
@@ -577,7 +572,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             )  # get a new response from GPT where it can see the function response
 
                         if hasattr(response, 'choices'):
-                            response.choices[0].message.content =\
+                            response.choices[0].message.content = \
                                 response.choices[0].message.content.strip().replace('\r', ' ').replace('\n', ' ')
                             response.choices[0].message.content = ' '.join(
                                 re.split(r'(?<=[.:;])\s', response.choices[0].message.content)[:3])
@@ -607,5 +602,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="pyWiki Lite")
+    parser.add_argument("--version", action="store_true", help="Show the version number")
+    args = parser.parse_args()
+
+    if args.version:
+        print(get_version())
+        sys.exit()
+
     app = TwitchBotGUI()
     app.mainloop()
