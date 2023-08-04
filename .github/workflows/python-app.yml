@@ -42,7 +42,7 @@ jobs:
     - name: Version
       run: |
         chmod +x /home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py 
-        echo "name=version::$(/home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py --version) >> $GITHUB_OUTPUT"
+        echo "VERSION=$(/home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py --version)" >> $GITHUB_ENV
       id: version
 
     - name: Release
@@ -51,7 +51,7 @@ jobs:
       with:
         draft: false
         prerelease: false
-        release_name: ${{ steps.version.outputs.version }}
+        release_name: ${{ env.VERSION }}
         tag_name: ${{ github.run_number }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
