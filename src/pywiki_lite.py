@@ -498,6 +498,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print('Disconnected')
         app.append_to_log('Disconnected')
 
+    def on_ctcp(self, c, e):
+        message = e.arguments[1]
+        author = ''
+        for tag in e.tags:
+            if tag['key'] == 'display-name':
+                author = tag['value']
+                break
+        print(author + " " + message)
+        app.append_to_log((author + " " + message))
+
     def on_pubmsg(self, c, e):
         # If a chat message starts with an exclamation point, try to run it as a command
         message = e.arguments[0]
