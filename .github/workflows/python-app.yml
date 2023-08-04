@@ -30,18 +30,13 @@ jobs:
         name: pyWiki Lite
         path: src/dist/windows
 
-    - name: version
-      run: |
-        chmod +x /home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py
-        echo "name=version::$('/home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py' --version)" >> $GITHUB_ENV
-      id: version
     - name: release
       uses: actions/create-release@v1
       id: create_release
       with:
         draft: false
         prerelease: false
-        release_name: ${{ steps.version.outputs.version }}
+        release_name: ${{ github.run_number }}
         tag_name: ${{ github.run_number }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

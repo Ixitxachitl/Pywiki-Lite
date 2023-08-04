@@ -195,7 +195,7 @@ class TwitchBotGUI(tk.Tk):
     def write_to_text_file(self, file_path, content):
         try:
             with open(file_path, 'w') as file:
-                file.write(content.encode("utf-8"))
+                file.write(content)
             print(f"Successfully wrote to {file_path}")
         except Exception as e:
             print(f"Error occurred while writing to {file_path}: {e}")
@@ -386,7 +386,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     },
                     "required": ["user"],
                 },
-            }
+            },
+            {
+                "name": "get_next_launch",
+                "description": "Get the next scheduled space launch",
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                },
+            },
         ]
 
         # Create IRC bot connection
@@ -415,6 +423,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c.cap('REQ', ':twitch.tv/tags')
         c.cap('REQ', ':twitch.tv/commands')
         c.join(self.channel)
+
+    def get_next_launch(self, **kwargs):
+        url = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?mode=list'
+        return json.dumps(requests.get(url).json()["results"][0])
 
     def get_pronouns(self, author):
         # Check if pronouns exist in the cache
@@ -531,6 +543,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             # Note: the JSON response may not always be valid; be sure to handle errors
                             available_functions = {
                                 "get_user_pronouns": self.get_pronouns,
+                                "get_next_launch": self.get_next_launch,
                             }  # only one function in this example, but you can have multiple
                             function_name = response_message["function_call"]["name"]
                             function_to_call = available_functions[function_name]
