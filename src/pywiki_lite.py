@@ -16,7 +16,7 @@ import requests
 
 import openai
 from datetime import datetime, timezone
-if os.environ.get('TERM') is None:
+if sys.platform.startswith('win'):
     from tkinter import messagebox, ttk
     import tkinter.scrolledtext as tkscrolled
     import tkinter as tk
