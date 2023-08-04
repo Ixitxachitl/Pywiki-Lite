@@ -27,12 +27,3 @@ jobs:
       with:
         name: pyWiki Lite
         path: ./dist/
-    - name: upload windows artifact
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/pyWiki Lite.zip
-        asset_name: pyWiki Lite.zip
-        asset_content_type: application/zip
