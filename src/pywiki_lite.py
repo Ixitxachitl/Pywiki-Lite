@@ -17,10 +17,9 @@ import requests
 
 import openai
 from datetime import datetime, timezone
-if sys.platform.startswith('win'):
-    from tkinter import messagebox, ttk
-    import tkinter.scrolledtext as tkscrolled
-    import tkinter as tk
+from tkinter import messagebox, ttk
+import tkinter.scrolledtext as tkscrolled
+import tkinter as tk
 from irc.dict import IRCDict
 import argparse
 
@@ -609,7 +608,7 @@ if __name__ == "__main__":
     parser.add_argument("--version", action="store_true", help="Show the version number")
     args = parser.parse_args()
 
-    if args.version or not sys.platform.startswith('win'):
+    if args.version:
         print(get_version())
         sys.exit()
 
