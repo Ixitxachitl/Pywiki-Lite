@@ -31,7 +31,7 @@ jobs:
         path: src/dist/windows
 
     - name: version
-      run: echo "name=version::$('/home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pyWiki_Lite.py' --version) >> $GITHUB_OUTPUT"
+      run: echo "name=version::$('/home/runner/work/Pywiki-Lite/Pywiki-Lite/src/pywiki_lite.py' --version) >> $GITHUB_OUTPUT"
       id: version
     - name: release
       uses: actions/create-release@v1

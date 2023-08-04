@@ -93,7 +93,7 @@ class TwitchBotGUI(tk.Tk):
         self.append_to_log(self.openai_model_entry.get() + ' set')
 
     def show_about_popup(self):
-        about_text = "pyWiki Lite " + get_version() + "\n©2023 Ixitxachitl\nAnd ChatGPT"
+        about_text = "pyWiki Lite " + self.get_version() + "\n©2023 Ixitxachitl\nAnd ChatGPT"
         messagebox.showinfo("About", about_text)
 
     def append_to_log(self, message):
