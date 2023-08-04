@@ -6,6 +6,8 @@ name: Python application
 on:
   push:
     branches: [ "master" ]
+    tags:
+      - '*'
   pull_request:
     branches: [ "master" ]
 
@@ -27,3 +29,28 @@ jobs:
       with:
         name: pyWiki Lite
         path: ./dist/
+
+    - name: version
+      run: echo "::set-output name=version::$(src/pyWiki Lite.py --version)"
+      id: version
+    - name: release
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        draft: false
+        prerelease: false
+        release_name: ${{ steps.version.outputs.version }}
+        tag_name: ${{ github.ref }}
+        body_path: CHANGELOG.md
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: upload windows artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/pyWiki Lite.zip
+        asset_name: pyWiki Lite.zip
+        asset_content_type: application/zip
