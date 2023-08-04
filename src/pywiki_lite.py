@@ -608,7 +608,7 @@ if __name__ == "__main__":
     parser.add_argument("--version", action="store_true", help="Show the version number")
     args = parser.parse_args()
 
-    if args.version:
+    if args.version or not sys.platform.startswith('win'):
         print(get_version())
         sys.exit()
 
