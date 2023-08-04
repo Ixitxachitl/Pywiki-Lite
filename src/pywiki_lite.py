@@ -14,14 +14,16 @@ import traceback
 
 import irc.bot
 import requests
+from irc.dict import IRCDict
+import argparse
 
 import openai
 from datetime import datetime, timezone
-from tkinter import messagebox, ttk
-import tkinter.scrolledtext as tkscrolled
-import tkinter as tk
-from irc.dict import IRCDict
-import argparse
+
+if sys.platform.startswith('win'):
+    from tkinter import messagebox, ttk
+    import tkinter.scrolledtext as tkscrolled
+    import tkinter as tk
 
 
 def resource_path(relative_path):
