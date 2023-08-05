@@ -6,4 +6,4 @@
 * OpenAI API Key: https://platform.openai.com/
 <br />
 
-![image](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/ea39426a-ad3b-4642-a4cb-8110f2e9bdca)
+![Screenshot 2023-08-05 135712](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/c64a9482-3a2e-47b6-8d33-532a844d70c5)
