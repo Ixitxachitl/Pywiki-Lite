@@ -36,7 +36,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.13"  # Version Number
+    return "1.14"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -457,7 +457,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_join(self, c, e):
         if e.source.split('!')[0].lower() not in str(self.users) and \
                 e.source.split('!')[0].lower() != self.username.lower() and\
-                e.source.split('!')[0].lower() != self.channel.lower():
+                e.source.split('!')[0].lower() != self.channel[1:].lower():
             self.users.append(e.source.split('!')[0].lower())
             app.user_list.insert(tk.END, e.source.split('!')[0].lower())
             print(e.source.split('!')[0].lower() + ' joined')
@@ -465,7 +465,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_part(self, c, e):
         if e.source.split('!')[0].lower() not in str(self.users) and \
                 e.source.split('!')[0].lower() != self.username.lower() and\
-                e.source.split('!')[0].lower() != self.channel.lower():
+                e.source.split('!')[0].lower() != self.channel[1:].lower():
             self.users.pop(e.source.split('!')[0].lower())
             app.user_list.delete(app.user_list.get(0, tk.END).index(e.source.split('!')[0].lower()))
             print(e.source.split('!')[0].lower() + ' left')
