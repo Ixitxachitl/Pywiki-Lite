@@ -277,6 +277,7 @@ class TwitchBotGUI(tk.Tk):
                 # self.bot.die()
                 # self.bot_thread.join()
                 self.terminate_thread(self.bot_thread)
+                self.bot.users = []
                 print("Stopped")
                 self.append_to_log("Stopped")
 
@@ -429,17 +430,31 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def get_users(self, **kwargs):
         self.connection.users()
         time.sleep(1)
+        for user in self.users:
+            if user == self.channel[1:].lower():
+                self.users.remove(self.channel[1:].lower())
+            if user == self.username.lower():
+                self.users.remove(self.username.lower())
         return str(self.users)
 
     def on_namreply(self, c, e):
         if not all(item == self.username.lower() for item in e.arguments[2].split()):
             self.users = e.arguments[2].split()
-            for user in self.users:
-                if user == self.channel[1:].lower():
-                    self.users.remove(self.channel[1:].lower())
-                if user == self.username.lower():
-                    self.users.remove(self.username.lower())
             print(self.users)
+
+    def on_join(self, c, e):
+        if e.source.split('!')[0].lower() not in str(self.users) and \
+                e.source.split('!')[0].lower() != self.username.lower() and\
+                e.source.split('!')[0].lower() != self.channel.lower():
+            self.users.append(e.source.split('!')[0].lower())
+            print(e.source.split('!')[0].lower() + ' joined')
+
+    def on_part(self, c, e):
+        if e.source.split('!')[0].lower() not in str(self.users) and \
+                e.source.split('!')[0].lower() != self.username.lower() and\
+                e.source.split('!')[0].lower() != self.channel.lower():
+            self.users.pop(e.source.split('!')[0].lower())
+            print(e.source.split('!')[0].lower() + ' left')
 
     def on_welcome(self, c, e):
         print('Joining ' + self.channel)
