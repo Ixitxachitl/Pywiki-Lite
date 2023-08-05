@@ -343,6 +343,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
         self.pronoun_cache = {}
+        self.users = []
 
         # Get the channel id, we will need this for v5 API calls
         url = 'https://api.twitch.tv/helix/users?login=' + channel
@@ -398,6 +399,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     },
                 },
             },
+            {
+                "name": "get_users",
+                "description": "Get a list of users in chat",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                    },
+                },
+            },
         ]
 
         # Create IRC bot connection
@@ -416,6 +426,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         r = requests.get(url, headers=headers).json()
         return r['data'][0]['game_name']
 
+    def get_users(self, **kwargs):
+        self.connection.users()
+        time.sleep(1)
+        return str(self.users)
+
+    def on_namreply(self, c, e):
+        if not all(item == self.username.lower() for item in e.arguments[2].split()):
+            self.users = e.arguments[2].split()
+            for user in self.users:
+                if user == self.channel[1:].lower():
+                    self.users.remove(self.channel[1:].lower())
+                if user == self.username.lower():
+                    self.users.remove(self.username.lower())
+            print(self.users)
+
     def on_welcome(self, c, e):
         print('Joining ' + self.channel)
         app.append_to_log('Joining ' + self.channel)
@@ -426,6 +451,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c.cap('REQ', ':twitch.tv/tags')
         c.cap('REQ', ':twitch.tv/commands')
         c.join(self.channel)
+
+        self.connection.users()
 
     def get_launch(self, when, **kwargs):
         if when == 'next':
@@ -560,6 +587,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             available_functions = {
                                 "get_user_pronouns": self.get_pronouns,
                                 "get_launch": self.get_launch,
+                                "get_users": self.get_users,
                             }  # only one function in this example, but you can have multiple
                             function_name = response_message["function_call"]["name"]
                             function_to_call = available_functions[function_name]
