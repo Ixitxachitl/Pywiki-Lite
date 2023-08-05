@@ -224,7 +224,7 @@ class TwitchBotGUI(tk.Tk):
                                                "pronouns are <streamer_pronouns>. The streamer is playing <game>. The "
                                                "name of the chatter is <author> and their pronouns are "
                                                "<chatter_pronouns>. The current date and time are: <UTC>. A list of "
-                                               "users in chat are: <users> Global twitch emotes that you can use are"
+                                               "users in chat are: <users>. Global twitch emotes that you can use are"
                                                " <emotes>.")
             else:
                 self.input_text.insert(tk.END, section.get('InputString', ''))
