@@ -36,7 +36,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.14"  # Version Number
+    return "1.15"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -279,6 +279,7 @@ class TwitchBotGUI(tk.Tk):
             self.bot_running = False
             self.bot_toggle_button.config(text="Start Bot")
             self.write_to_text_file("log.txt", self.log_text.get("1.0", tk.END).strip())
+            self.user_list.delete(0, tk.END)
             if hasattr(self, "bot"):
                 self.bot.connection.quit()
                 self.bot.disconnect()
@@ -437,21 +438,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def get_users(self, **kwargs):
         self.connection.users()
-        time.sleep(1)
-        for user in self.users:
-            if user == self.channel[1:].lower():
-                self.users.remove(self.channel[1:].lower())
-            if user == self.username.lower():
-                self.users.remove(self.username.lower())
-
-        for user in self.users:
-            app.user_list.insert(tk.END, user)
-
         return str(self.users)
 
     def on_namreply(self, c, e):
         if not all(item == self.username.lower() for item in e.arguments[2].split()):
             self.users = e.arguments[2].split()
+            for user in self.users:
+                if user == self.channel[1:].lower():
+                    self.users.remove(self.channel[1:].lower())
+                if user == self.username.lower():
+                    self.users.remove(self.username.lower())
+
+            for user in self.users:
+                app.user_list.insert(tk.END, user)
+
             print(self.users)
 
     def on_join(self, c, e):
@@ -467,7 +467,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 e.source.split('!')[0].lower() != self.username.lower() and\
                 e.source.split('!')[0].lower() != self.channel[1:].lower():
             self.users.pop(e.source.split('!')[0].lower())
-            app.user_list.delete(app.user_list.get(0, tk.END).index(e.source.split('!')[0].lower()))
+            username = e.source.split('!')[0].lower()
+            indices = app.user_list.curselection()
+            if indices:
+                for index in indices:
+                    item_name = app.user_list.get(index)
+                    if item_name == username:
+                        app.user_list.delete(index)
             print(e.source.split('!')[0].lower() + ' left')
 
     def on_welcome(self, c, e):
