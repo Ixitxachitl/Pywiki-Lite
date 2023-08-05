@@ -36,7 +36,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.12"  # Version Number
+    return "1.13"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -45,7 +45,7 @@ class TwitchBotGUI(tk.Tk):
         super().__init__()
 
         self.title("pyWiki Lite")
-        self.geometry("825x420")
+        self.geometry("1000x420")
         self.iconbitmap(default=resource_path('icon.ico'))
 
         # Make the window non-resizable
@@ -124,35 +124,37 @@ class TwitchBotGUI(tk.Tk):
                                                                                       pady=10, padx=10, sticky='w')
         tk.Label(self, text="Context", font=("Helvetica", 16)).grid(row=0, column=3, columnspan=1,
                                                                     pady=10, padx=(0, 10), sticky='w')
+        tk.Label(self, text="Users", font=("Helvetica", 16)).grid(row=0, column=7, columnspan=1,
+                                                                    pady=10, padx=(0, 10), sticky='w')
 
         # Twitch Bot Username Entry
         tk.Label(self, text="Username:").grid(row=1, column=0, padx=(10, 5), sticky="e")
-        self.bot_username_entry = tk.Entry(self, textvariable=self.username)
+        self.bot_username_entry = tk.Entry(self, textvariable=self.username, width=50)
         self.bot_username_entry.grid(row=1, column=1, sticky="ew", padx=(0, 10), pady=(2, 0))
 
         # ClientID Entry
         tk.Label(self, text="ClientID:").grid(row=2, column=0, padx=(10, 5), sticky="e")
-        self.client_id_entry = tk.Entry(self, show="*", textvariable=self.client_id)
+        self.client_id_entry = tk.Entry(self, show="*", textvariable=self.client_id, width=50)
         self.client_id_entry.grid(row=2, column=1, sticky="ew", padx=(0, 10))
 
         # Client Secret Entry
         tk.Label(self, text="Client Secret:").grid(row=3, column=0, padx=(10, 5), sticky="e")
-        self.client_secret_entry = tk.Entry(self, show="*", textvariable=self.client_secret)
+        self.client_secret_entry = tk.Entry(self, show="*", textvariable=self.client_secret, width=50)
         self.client_secret_entry.grid(row=3, column=1, sticky="ew", padx=(0, 10))
 
         # Twitch Bot Token Entry
         tk.Label(self, text="Bot OAuth Token:").grid(row=4, column=0, padx=(10, 5), sticky="e")
-        self.bot_token_entry = tk.Entry(self, show="*", textvariable=self.bot_token)
+        self.bot_token_entry = tk.Entry(self, show="*", textvariable=self.bot_token, width=50)
         self.bot_token_entry.grid(row=4, column=1, sticky="ew", padx=(0, 10))
 
         # Channel Entry
         tk.Label(self, text="Channel:").grid(row=5, column=0, padx=(10, 5), sticky="e")
-        self.channel_entry = tk.Entry(self, textvariable=self.channel)
+        self.channel_entry = tk.Entry(self, textvariable=self.channel, width=50)
         self.channel_entry.grid(row=5, column=1, sticky="ew", padx=(0, 10))
 
         # OpenAI API Key Entry
         tk.Label(self, text="OpenAI API Key:").grid(row=6, column=0, padx=(10, 5), sticky="e")
-        self.openai_api_key_entry = tk.Entry(self, show="*", textvariable=self.openai_api_key)
+        self.openai_api_key_entry = tk.Entry(self, show="*", textvariable=self.openai_api_key, width=50)
         self.openai_api_key_entry.grid(row=6, column=1, sticky="ew", padx=(0, 10))
 
         # OpenAI Model
@@ -177,18 +179,23 @@ class TwitchBotGUI(tk.Tk):
         self.frequency_slider.grid(row=7, column=0, columnspan=2, padx=10, pady=2, sticky="ew")
 
         # Start/Stop Bot Button
-        self.bot_toggle_button = tk.Button(self, text="Start Bot", command=self.toggle_bot, anchor='e',
-                                           justify='center')
+        self.bot_toggle_button = tk.Button(self, text="Start Bot", command=self.toggle_bot)
         self.bot_toggle_button.grid(row=0, column=1, columnspan=1, sticky="e", pady=10, padx=10)
 
         # Create a Text widget to display bot messages
         self.log_text = tkscrolled.ScrolledText(self, wrap="word", height=11, state=tk.DISABLED)
-        self.log_text.grid(row=8, column=0, columnspan=2, padx=10, pady=(3, 0), sticky="w", )
+        self.log_text.grid(row=8, column=0, columnspan=2, padx=10, pady=(3, 0), sticky="ew")
 
         # Create a Text widget to display the input string
         self.input_text = tkscrolled.ScrolledText(self, wrap="word", height=22, width=40, undo=True,
                                                   autoseparators=True, maxundo=-1)
         self.input_text.grid(row=1, column=3, columnspan=4, rowspan=9, padx=(0, 10), pady=2, sticky="ne")
+
+        # Create a Listbox to display users
+        self.user_list_scroll = tk.Scrollbar(self, orient="vertical")
+        self.user_list_scroll.grid(row=1, column=8, columnspan=1, rowspan=9, pady=1, padx=(0, 10), sticky="ns")
+        self.user_list = tk.Listbox(self, height=22, selectmode='SINGLE', width=30, yscrollcommand=self.user_list_scroll.set)
+        self.user_list.grid(row=1, column=7, columnspan=1, rowspan=9, pady=1, sticky="ne")
 
     def write_to_text_file(self, file_path, content):
         try:
@@ -216,8 +223,9 @@ class TwitchBotGUI(tk.Tk):
                                                "are They/Them. The name of the streamer is <channel> and their "
                                                "pronouns are <streamer_pronouns>. The streamer is playing <game>. The "
                                                "name of the chatter is <author> and their pronouns are "
-                                               "<chatter_pronouns>. The current date and time are: <UTC>. Global "
-                                               "twitch emotes that you can use are <emotes>.")
+                                               "<chatter_pronouns>. The current date and time are: <UTC>. A list of "
+                                               "users in chat are: <users> Global twitch emotes that you can use are"
+                                               " <emotes>.")
             else:
                 self.input_text.insert(tk.END, section.get('InputString', ''))
 
@@ -435,6 +443,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 self.users.remove(self.channel[1:].lower())
             if user == self.username.lower():
                 self.users.remove(self.username.lower())
+
+        for user in self.users:
+            app.user_list.insert(tk.END, user)
+
         return str(self.users)
 
     def on_namreply(self, c, e):
@@ -447,6 +459,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 e.source.split('!')[0].lower() != self.username.lower() and\
                 e.source.split('!')[0].lower() != self.channel.lower():
             self.users.append(e.source.split('!')[0].lower())
+            app.user_list.insert(tk.END, e.source.split('!')[0].lower())
             print(e.source.split('!')[0].lower() + ' joined')
 
     def on_part(self, c, e):
@@ -454,6 +467,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 e.source.split('!')[0].lower() != self.username.lower() and\
                 e.source.split('!')[0].lower() != self.channel.lower():
             self.users.pop(e.source.split('!')[0].lower())
+            app.user_list.delete(app.user_list.get(0, tk.END).index(e.source.split('!')[0].lower()))
             print(e.source.split('!')[0].lower() + ' left')
 
     def on_welcome(self, c, e):
@@ -522,7 +536,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             "<emotes>": ','.join(map(str, self.emotes)),
             "<UTC>": str(datetime.now(timezone.utc)),
             "<chatter_pronouns>": self.get_pronouns(author),
-            "<streamer_pronouns>": self.get_pronouns(self.channel[1:])
+            "<streamer_pronouns>": self.get_pronouns(self.channel[1:]),
+            "<users>": str(self.users)
         }
 
         for placeholder, replacement in replacements.items():
