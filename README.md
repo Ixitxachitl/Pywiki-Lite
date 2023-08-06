@@ -23,4 +23,4 @@ Features:
 * GPT model (Features are available currently in 0613 builds, if you don't have access to gpt-4 please set it to one of the gpt-3-turbo options)
 <br /><br />
 
-![Screenshot 2023-08-06 075105.png](..%2F..%2F..%2FOneDrive%2FPictures%2FScreenshots%2FScreenshot%202023-08-06%20075105.png)
+![Screenshot 2023-08-06 075105](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/18bd075c-7a34-4e2b-ba35-f1f7852c812b)
