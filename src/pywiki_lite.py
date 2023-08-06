@@ -36,7 +36,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.16"  # Version Number
+    return "1.17"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -202,7 +202,7 @@ class TwitchBotGUI(tk.Tk):
 
     def write_to_text_file(self, file_path, content):
         try:
-            with open(file_path, 'w') as file:
+            with open(file_path, 'w', encoding='utf-8') as file:
                 file.write(content)
             print(f"Successfully wrote to {file_path}")
         except Exception as e:
@@ -457,31 +457,28 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         app.user_count.config(text=app.user_list.size())
 
-        print(self.users)
+        print(', '.join(map(str, self.users)))
 
     def on_join(self, c, e):
-        if e.source.split('!')[0].lower() not in str(self.users) and \
-                e.source.split('!')[0].lower() != self.username.lower() and\
-                e.source.split('!')[0].lower() != self.channel[1:].lower():
-            self.users.append(e.source.split('!')[0].lower())
-            app.user_list.insert(tk.END, e.source.split('!')[0].lower())
+        user = e.source.split('!')[0].lower()
+        if user not in str(self.users) and \
+                user != self.username.lower() and\
+                user != self.channel[1:].lower():
+            self.users.append(user)
+            app.user_list.insert(tk.END, user)
             app.user_count.config(text=app.user_list.size())
-            print(e.source.split('!')[0].lower() + ' joined')
+            print(user + ' joined')
 
     def on_part(self, c, e):
-        if e.source.split('!')[0].lower() not in str(self.users) and \
-                e.source.split('!')[0].lower() != self.username.lower() and\
-                e.source.split('!')[0].lower() != self.channel[1:].lower():
-            self.users.pop(e.source.split('!')[0].lower())
-            username = e.source.split('!')[0].lower()
-            indices = app.user_list.curselection()
-            if indices:
-                for index in indices:
-                    item_name = app.user_list.get(index)
-                    if item_name == username:
-                        app.user_list.delete(index)
+        user = e.source.split('!')[0].lower()
+        if user in str(self.users):
+            self.users.remove(user)
+            for index in range(app.user_list.size(), -1, -1):
+                item_name = app.user_list.get(index)
+                if item_name == user:
+                    app.user_list.delete(index)
             app.user_count.config(text=app.user_list.size())
-            print(e.source.split('!')[0].lower() + ' left')
+            print(user + ' left')
 
     def on_welcome(self, c, e):
         print('Joining ' + self.channel)
@@ -546,11 +543,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             "<channel>": self.channel[1:],
             "<game>": self.get_game(),
             "<author>": author,
-            "<emotes>": ','.join(map(str, self.emotes)),
+            "<emotes>": ', '.join(map(str, self.emotes)),
             "<UTC>": str(datetime.now(timezone.utc)),
             "<chatter_pronouns>": self.get_pronouns(author),
             "<streamer_pronouns>": self.get_pronouns(self.channel[1:]),
-            "<users>": str(self.users)
+            "<users>": ', '.join(map(str, self.users))
         }
 
         for placeholder, replacement in replacements.items():
@@ -562,9 +559,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         return parsed_list
 
-    def _on_disconnect(self, c, e):
-        self.channels = IRCDict()
-        self.recon.run(self)
+    def on_disconnect(self, c, e):
         print('Disconnected')
         app.append_to_log('Disconnected')
 
