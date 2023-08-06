@@ -35,7 +35,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.17"  # Version Number
+    return "1.18"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -196,6 +196,7 @@ class TwitchBotGUI(tk.Tk):
         self.user_list_scroll = tk.Scrollbar(self, orient="vertical")
         self.user_list_scroll.grid(row=1, column=8, columnspan=1, rowspan=9, pady=1, padx=(0, 10), sticky="ns")
         self.user_list = tk.Listbox(self, height=22, selectmode='SINGLE', width=30, yscrollcommand=self.user_list_scroll.set)
+        self.user_list_scroll.config(command=self.user_list.yview)
         self.user_list.grid(row=1, column=5, columnspan=3, rowspan=9, pady=1, sticky="ne")
         self.user_list.bind('<FocusOut>', lambda e: self.user_list.selection_clear(0, tk.END))
 
