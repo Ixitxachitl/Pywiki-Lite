@@ -36,7 +36,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.15"  # Version Number
+    return "1.16"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -124,8 +124,10 @@ class TwitchBotGUI(tk.Tk):
                                                                                       pady=10, padx=10, sticky='w')
         tk.Label(self, text="Context", font=("Helvetica", 16)).grid(row=0, column=3, columnspan=1,
                                                                     pady=10, padx=(0, 10), sticky='w')
-        tk.Label(self, text="Users", font=("Helvetica", 16)).grid(row=0, column=7, columnspan=1,
+        tk.Label(self, text="Users", font=("Helvetica", 16)).grid(row=0, column=5, columnspan=1,
                                                                     pady=10, padx=(0, 10), sticky='w')
+        self.user_count = tk.Label(self, text="", font=("Helvetica 16 bold"))
+        self.user_count.grid(row=0, column=6, columnspan=1, pady=10, padx=(0, 10), sticky='w')
 
         # Twitch Bot Username Entry
         tk.Label(self, text="Username:").grid(row=1, column=0, padx=(10, 5), sticky="e")
@@ -169,10 +171,10 @@ class TwitchBotGUI(tk.Tk):
         self.openai_model_entry.bind('<<ComboboxSelected>>', self.on_selection_change)
 
         self.stay_on_top_button = tk.Button(self, text="📌", command=self.toggle_stay_on_top)
-        self.stay_on_top_button.grid(row=0, column=5, sticky="e", padx=10)
+        self.stay_on_top_button.grid(row=0, column=7, sticky="e", padx=10)
 
         self.about_button = tk.Button(self, text="ℹ️", command=self.show_about_popup, borderwidth=0)
-        self.about_button.grid(row=0, column=6, sticky="e", padx=10)
+        self.about_button.grid(row=0, column=7, columnspan=2, sticky="e")
 
         # Create a slider widget
         self.frequency_slider = tk.Scale(self, from_=0, to=100, orient=tk.HORIZONTAL)
@@ -189,13 +191,14 @@ class TwitchBotGUI(tk.Tk):
         # Create a Text widget to display the input string
         self.input_text = tkscrolled.ScrolledText(self, wrap="word", height=22, width=40, undo=True,
                                                   autoseparators=True, maxundo=-1)
-        self.input_text.grid(row=1, column=3, columnspan=4, rowspan=9, padx=(0, 10), pady=2, sticky="ne")
+        self.input_text.grid(row=1, column=3, columnspan=2, rowspan=9, padx=(0, 10), pady=2, sticky="ne")
 
         # Create a Listbox to display users
         self.user_list_scroll = tk.Scrollbar(self, orient="vertical")
         self.user_list_scroll.grid(row=1, column=8, columnspan=1, rowspan=9, pady=1, padx=(0, 10), sticky="ns")
         self.user_list = tk.Listbox(self, height=22, selectmode='SINGLE', width=30, yscrollcommand=self.user_list_scroll.set)
-        self.user_list.grid(row=1, column=7, columnspan=1, rowspan=9, pady=1, sticky="ne")
+        self.user_list.grid(row=1, column=5, columnspan=3, rowspan=9, pady=1, sticky="ne")
+        self.user_list.bind('<FocusOut>', lambda e: self.user_list.selection_clear(0, tk.END))
 
     def write_to_text_file(self, file_path, content):
         try:
@@ -280,6 +283,7 @@ class TwitchBotGUI(tk.Tk):
             self.bot_toggle_button.config(text="Start Bot")
             self.write_to_text_file("log.txt", self.log_text.get("1.0", tk.END).strip())
             self.user_list.delete(0, tk.END)
+            app.user_count.config(text="")
             if hasattr(self, "bot"):
                 self.bot.connection.quit()
                 self.bot.disconnect()
@@ -441,18 +445,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         return str(self.users)
 
     def on_namreply(self, c, e):
-        if not all(item == self.username.lower() for item in e.arguments[2].split()):
-            self.users = e.arguments[2].split()
-            for user in self.users:
-                if user == self.channel[1:].lower():
-                    self.users.remove(self.channel[1:].lower())
-                if user == self.username.lower():
-                    self.users.remove(self.username.lower())
+        self.users = e.arguments[2].split()
+        for user in self.users:
+            if user == self.channel[1:].lower():
+                self.users.remove(self.channel[1:].lower())
+            if user == self.username.lower():
+                self.users.remove(self.username.lower())
 
-            for user in self.users:
-                app.user_list.insert(tk.END, user)
+        for user in self.users:
+            app.user_list.insert(tk.END, user)
 
-            print(self.users)
+        app.user_count.config(text=app.user_list.size())
+
+        print(self.users)
 
     def on_join(self, c, e):
         if e.source.split('!')[0].lower() not in str(self.users) and \
@@ -460,6 +465,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 e.source.split('!')[0].lower() != self.channel[1:].lower():
             self.users.append(e.source.split('!')[0].lower())
             app.user_list.insert(tk.END, e.source.split('!')[0].lower())
+            app.user_count.config(text=app.user_list.size())
             print(e.source.split('!')[0].lower() + ' joined')
 
     def on_part(self, c, e):
@@ -474,6 +480,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     item_name = app.user_list.get(index)
                     if item_name == username:
                         app.user_list.delete(index)
+            app.user_count.config(text=app.user_list.size())
             print(e.source.split('!')[0].lower() + ' left')
 
     def on_welcome(self, c, e):
