@@ -35,7 +35,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.18"  # Version Number
+    return "1.19"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -199,6 +199,16 @@ class TwitchBotGUI(tk.Tk):
         self.user_list_scroll.config(command=self.user_list.yview)
         self.user_list.grid(row=1, column=5, columnspan=3, rowspan=9, pady=1, sticky="ne")
         self.user_list.bind('<FocusOut>', lambda e: self.user_list.selection_clear(0, tk.END))
+        self.user_list.bind('<ButtonRelease-1>', self.show_popup)
+
+    def show_popup(self, event):
+        selected_index = self.user_list.curselection()
+        if selected_index:
+            item_index = int(selected_index[0])
+            selected_item = self.user_list.get(item_index)
+            # followage = self.bot.get_followage(selected_item)
+            # messagebox.showinfo("Information", selected_item + ' followed on ' + followage)
+
 
     def write_to_text_file(self, file_path, content):
         try:
@@ -352,12 +362,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                                 + '&client_secret='
                                                 + self.client_secret
                                                 + '&grant_type=client_credentials'
-                                                + '&scope=user%3amanage%3achat_color'
                                                 + '').json()
+        # print(self.client_credentials)
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
         self.pronoun_cache = {}
         self.users = []
+
+        '''
+        url = 'https://id.twitch.tv/oauth2/validate'
+        headers = {'Authorization': 'OAuth ' + self.token}
+        '''
 
         # Get the channel id, we will need this for v5 API calls
         url = 'https://api.twitch.tv/helix/users?login=' + channel
@@ -439,6 +454,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                    'Content-Type': 'application/json'}
         r = requests.get(url, headers=headers).json()
         return r['data'][0]['game_name']
+
+    '''
+    def get_followage(self, user):
+        url = 'https://api.twitch.tv/helix/users?login=' + user
+        headers = {'Authorization': 'Bearer ' + self.user_credentials,
+                   'Client-ID': self.client_id,
+                   'Content-Type': 'application/json'}
+        r = requests.get(url, headers=headers).json()
+        user_id = r['data'][0]['id']
+        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + user_id + '&broadcaster_id=' + self.user_id
+        r = requests.get(url, headers=headers).json()
+        return r['data'][0]['followed_at']
+    '''
 
     def get_users(self, **kwargs):
         self.connection.users()
