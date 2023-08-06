@@ -14,7 +14,6 @@ import traceback
 
 import irc.bot
 import requests
-from irc.dict import IRCDict
 import argparse
 
 import openai
