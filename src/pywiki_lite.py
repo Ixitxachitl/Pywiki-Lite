@@ -453,7 +453,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                                 + self.client_secret
                                                 + '&grant_type=client_credentials'
                                                 + '').json()
-        # print(self.client_credentials)
+        #print(self.client_credentials)
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
         self.pronoun_cache = {}
@@ -783,7 +783,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             if response.choices[0].message.content.lower().startswith(self.username.lower()):
                                 response.choices[0].message.content = response.choices[0].message.content[
                                                                       len(self.username):]
-                            while len((response.choices[0].message.content + '\r\n').encode()) > 490:
+                            while len(('PRIVMSG' + self.channel + " " + response.choices[0].message.content + '\r\n').encode()) > 512:
                                 response.choices[0].message.content = response.choices[0].message.content[:-1]
                             c.privmsg(self.channel, response.choices[0].message.content[:500])
                             app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
