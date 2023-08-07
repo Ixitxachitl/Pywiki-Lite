@@ -11,7 +11,7 @@ Tags for Context:
 * \<game> : The current game from the twitch API
 * \<author> : The chatter that sent the prompt
 * \<emotes> : A CSV of all global twitch emotes (Uses a lot of tokens, remove this tag to save on openai credit)
-* \<UTC> : Raw UTC date and time output
+* \<UTC> : Raw UTC date and time output (<GMT> also works)
 * \<chatter_pronouns> : The pronouns of the chatter that sent the prompt
 * \<streamer_pronouns> : The pronouns of the streamer
 * \<users> : A CSV of the users in chat (Pulled from irc, may take time to update, large lists can use a lot of tokens, so you may not want to use this tag)
