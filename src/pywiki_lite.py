@@ -702,8 +702,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         if hasattr(response, 'choices'):
                             response.choices[0].message.content = \
                                 response.choices[0].message.content.strip().replace('\r', ' ').replace('\n', ' ')
-                            response.choices[0].message.content = ' '.join(
-                                re.split(r'(?<=[.:;])\s', response.choices[0].message.content)[:3])
                             while response.choices[0].message.content.startswith('.') or\
                                     response.choices[0].message.content.startswith('/'):
                                 response.choices[0].message.content = response.choices[0].message.content[1:]
