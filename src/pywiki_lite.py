@@ -3,7 +3,6 @@ import os
 import ctypes
 import json
 import queue
-import re
 import sys
 import threading
 import time
@@ -22,6 +21,10 @@ from datetime import datetime, timezone
 from tkinter import messagebox, ttk, font
 import tkinter.scrolledtext as tkscrolled
 import tkinter as tk
+
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import webbrowser
+import urllib.parse
 
 
 def resource_path(relative_path):
@@ -55,6 +58,7 @@ class TwitchBotGUI(tk.Tk):
         self.client_id = tk.StringVar()
         self.client_secret = tk.StringVar()
         self.bot_token = tk.StringVar()
+        self.refresh_token = tk.StringVar()
         self.channel = tk.StringVar()
         self.openai_api_key = tk.StringVar()
         self.openai_api_model = tk.StringVar()
@@ -140,10 +144,18 @@ class TwitchBotGUI(tk.Tk):
         self.user_count = tk.Label(self, text="", font=("Helvetica 16 bold"))
         self.user_count.grid(row=0, column=6, columnspan=1, pady=10, padx=(0, 10), sticky='w')
 
+
         # Twitch Bot Username Entry
         tk.Label(self, text="Username:").grid(row=1, column=0, padx=(10, 5), sticky="e")
+        '''
         self.bot_username_entry = tk.Entry(self, textvariable=self.username, width=50)
         self.bot_username_entry.grid(row=1, column=1, sticky="ew", padx=(0, 10), pady=(2, 0))
+        '''
+        self.bot_username_entry = tk.Label(self, textvariable=self.username)
+        self.bot_username_entry.grid(row=1, column=1, sticky="w", padx=(0, 10), pady=(2, 0))
+
+        self.login_button = tk.Button(self, text="Login", command=self.twitch_login)
+        self.login_button.grid(row=1, column=1, sticky="e", padx=10)
 
         # ClientID Entry
         tk.Label(self, text="ClientID:").grid(row=2, column=0, padx=(10, 5), sticky="e")
@@ -155,20 +167,22 @@ class TwitchBotGUI(tk.Tk):
         self.client_secret_entry = tk.Entry(self, show="*", textvariable=self.client_secret, width=50)
         self.client_secret_entry.grid(row=3, column=1, sticky="ew", padx=(0, 10))
 
+        '''
         # Twitch Bot Token Entry
         tk.Label(self, text="Bot OAuth Token:").grid(row=4, column=0, padx=(10, 5), sticky="e")
         self.bot_token_entry = tk.Entry(self, show="*", textvariable=self.bot_token, width=50)
         self.bot_token_entry.grid(row=4, column=1, sticky="ew", padx=(0, 10))
+        '''
 
         # Channel Entry
-        tk.Label(self, text="Channel:").grid(row=5, column=0, padx=(10, 5), sticky="e")
+        tk.Label(self, text="Channel:").grid(row=4, column=0, padx=(10, 5), sticky="e")
         self.channel_entry = tk.Entry(self, textvariable=self.channel, width=50)
-        self.channel_entry.grid(row=5, column=1, sticky="ew", padx=(0, 10))
+        self.channel_entry.grid(row=4, column=1, sticky="ew", padx=(0, 10))
 
         # OpenAI API Key Entry
-        tk.Label(self, text="OpenAI API Key:").grid(row=6, column=0, padx=(10, 5), sticky="e")
+        tk.Label(self, text="OpenAI API Key:").grid(row=5, column=0, padx=(10, 5), sticky="e")
         self.openai_api_key_entry = tk.Entry(self, show="*", textvariable=self.openai_api_key, width=50)
-        self.openai_api_key_entry.grid(row=6, column=1, sticky="ew", padx=(0, 10))
+        self.openai_api_key_entry.grid(row=5, column=1, sticky="ew", padx=(0, 10))
 
         # OpenAI Model
         self.openai_model_entry = ttk.Combobox(self, textvariable=self.openai_api_model, state="readonly")
@@ -188,19 +202,19 @@ class TwitchBotGUI(tk.Tk):
         self.about_button.grid(row=0, column=7, columnspan=2, sticky="e")
 
         self.stay_mute_button = tk.Button(self, text="🔇", font=font.Font(size=14), justify='center', command=self.toggle_mute)
-        self.stay_mute_button.grid(row=7, column=0, columnspan=2, sticky="e", padx=(0,10))
+        self.stay_mute_button.grid(row=6, column=0, columnspan=2, sticky="e", padx=(0,10))
 
         # Create a slider widget
         self.frequency_slider = tk.Scale(self, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.frequency_slider.grid(row=7, column=0, columnspan=2, padx=(10,60), pady=2, sticky="ew")
+        self.frequency_slider.grid(row=6, column=0, columnspan=2, padx=(10,60), pady=2, sticky="ew")
 
         # Start/Stop Bot Button
         self.bot_toggle_button = tk.Button(self, text="Start Bot", command=self.toggle_bot)
         self.bot_toggle_button.grid(row=0, column=1, columnspan=1, sticky="e", pady=10, padx=10)
 
         # Create a Text widget to display bot messages
-        self.log_text = tkscrolled.ScrolledText(self, wrap="word", height=11, state=tk.DISABLED)
-        self.log_text.grid(row=8, column=0, columnspan=2, padx=10, pady=(3, 0), sticky="ew")
+        self.log_text = tkscrolled.ScrolledText(self, wrap="word", height=12, state=tk.DISABLED)
+        self.log_text.grid(row=7, column=0, columnspan=2, padx=10, pady=(3, 0), sticky="ew")
 
         # Create a Text widget to display the input string
         self.input_text = tkscrolled.ScrolledText(self, wrap="word", height=22, width=40, undo=True,
@@ -224,6 +238,27 @@ class TwitchBotGUI(tk.Tk):
             # followage = self.bot.get_followage(selected_item)
             # messagebox.showinfo("Information", selected_item + ' followed on ' + followage)
 
+    def twitch_login(self):
+        self.open_browser_and_start_server()
+
+    def open_browser_and_start_server(self):
+        print('Logging in...')
+        print(self.client_id.get())
+        # Open the authorization URL in the default web browser
+        auth_params = {
+            'client_id': self.client_id.get(),
+            'redirect_uri': 'http://localhost:3000',
+            'response_type': 'code',
+            'scope': 'chat:read+chat:edit+channel:moderate+whispers:read+whispers:edit+channel_editor',
+            'force_verify': 'true',
+        }
+        auth_url = 'https://id.twitch.tv/oauth2/authorize?' + '&'.join([f'{k}={v}' for k, v in auth_params.items()])
+        webbrowser.open(auth_url)
+
+        # Start the server in a separate thread
+        server_address = ('', 3000)
+        httpd = HTTPServer(server_address, CallbackHandler)
+        httpd.handle_request()
 
     def write_to_text_file(self, file_path, content):
         try:
@@ -244,6 +279,7 @@ class TwitchBotGUI(tk.Tk):
             self.client_id.set(section.get('ClientID', ''))
             self.client_secret.set(section.get('ClientSecret', ''))
             self.bot_token.set(section.get('BotOAuthToken', ''))
+            self.refresh_token.set(section.get('RefreshToken', ''))
             self.channel.set(section.get('InitialChannels', ''))
             self.openai_api_key.set(section.get('OpenAIAPIKey', ''))
             if not section.get('InputString', ''):
@@ -274,6 +310,7 @@ class TwitchBotGUI(tk.Tk):
             'ClientID': self.client_id.get(),
             'ClientSecret': self.client_secret.get(),
             'BotOAuthToken': self.bot_token.get(),
+            'RefreshToken': self.refresh_token.get(),
             'InitialChannels': self.channel.get(),
             'OpenAIAPIKey': self.openai_api_key.get(),
             'InputString': self.input_text.get('1.0', 'end'),
@@ -347,23 +384,60 @@ class TwitchBotGUI(tk.Tk):
         self.save_configuration()
         if self.bot_running:
             self.bot_toggle_button.config(relief="raised")
-            self.bot_username_entry.config(state="normal")
             self.client_id_entry.config(state="normal")
             self.client_secret_entry.config(state="normal")
-            self.bot_token_entry.config(state="normal")
             self.channel_entry.config(state="normal")
             self.openai_api_key_entry.config(state="normal")
             self.stop_bot()
         else:
             self.bot_toggle_button.config(relief="sunken")
-            self.bot_username_entry.config(state="disabled")
             self.client_id_entry.config(state="disabled")
             self.client_secret_entry.config(state="disabled")
-            self.bot_token_entry.config(state="disabled")
             self.channel_entry.config(state="disabled")
             self.openai_api_key_entry.config(state="disabled")
             self.start_bot()
 
+
+class CallbackHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
+        # Extract access token from the URL fragment
+        fragment = self.path.split('?')[1]
+        fragment_params = dict(param.split('=') for param in fragment.split('&'))
+        code = fragment_params.get('code')
+
+        token_params = {
+            'client_id': app.client_id.get(),
+            'client_secret': app.client_secret.get(),
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': 'http://localhost:3000',
+        }
+
+        response = requests.post('https://id.twitch.tv/oauth2/token', data=token_params)
+        data = response.json()
+        access_token = data['access_token']
+        refresh_token = data['refresh_token']
+        print('Access Token: ' + access_token)
+        print('Refresh Token: ' + refresh_token)
+
+        url = 'https://api.twitch.tv/helix/users'
+        headers = {'Authorization': 'Bearer ' + access_token,
+                   'Client-ID': app.client_id.get(),
+                   'Content-Type': 'application/json'}
+        response = requests.get(url, headers=headers).json()
+        username = response['data'][0]['login']
+        print('Login: ' + username)
+
+        app.bot_token.set(access_token)
+        app.refresh_token.set(refresh_token)
+        app.username.set(username)
+
+        # Now you can use the access_token to make authenticated API requests
+        self.wfile.write(b'Authorization successful! You can close this window now.')
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, client_id, client_secret, token, channel, openai_api_key):
