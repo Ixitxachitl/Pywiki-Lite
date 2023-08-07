@@ -545,8 +545,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def get_pronouns(self, author, **kwargs):
         # Check if pronouns exist in the cache
-        if author in self.pronoun_cache:
-            return self.pronoun_cache[author]
+        if author.lower() in self.pronoun_cache:
+            return self.pronoun_cache[author.lower()]
 
         url = 'https://pronouns.alejo.io/api/users/' + author.lower()
         r = requests.get(url).json()
@@ -576,7 +576,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print('Got ' + author + ' pronouns ' + pronoun)
         app.append_to_log('Got ' + author + ' pronouns ' + pronoun)
 
-        self.pronoun_cache[author] = pronoun
+        self.pronoun_cache[author.lower()] = pronoun
 
         return pronoun
 
@@ -708,7 +708,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             if response.choices[0].message.content.lower().startswith(self.username.lower()):
                                 response.choices[0].message.content = response.choices[0].message.content[
                                                                       len(self.username):]
-                            while len(response.choices[0].message.content.encode('utf-8')) > 512:
+                            while len((response.choices[0].message.content + '\r\n').encode()) > 490:
                                 response.choices[0].message.content = response.choices[0].message.content[:-1]
                             c.privmsg(self.channel, response.choices[0].message.content[:500])
                             app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
