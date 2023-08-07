@@ -19,7 +19,7 @@ import argparse
 import openai
 from datetime import datetime, timezone
 
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, font
 import tkinter.scrolledtext as tkscrolled
 import tkinter as tk
 
@@ -35,7 +35,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.19"  # Version Number
+    return "1.20"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -61,6 +61,8 @@ class TwitchBotGUI(tk.Tk):
 
         # Variable to keep track of the bot state
         self.bot_running = False
+
+        self.mute = False
 
         self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo']
 
@@ -114,6 +116,16 @@ class TwitchBotGUI(tk.Tk):
         else:
             self.attributes("-topmost", True)
             self.stay_on_top_button.config(relief="sunken")
+
+    def toggle_mute(self):
+        if self.mute == True:
+            self.mute = False
+            self.append_to_log('Unmuted')
+            self.stay_mute_button.config(relief="raised")
+        else:
+            self.mute = True
+            self.append_to_log('Muted')
+            self.stay_mute_button.config(relief="sunken")
 
     def create_widgets(self):
         # Set the column weight to make text inputs expand horizontally
@@ -175,9 +187,12 @@ class TwitchBotGUI(tk.Tk):
         self.about_button = tk.Button(self, text="ℹ️", command=self.show_about_popup, borderwidth=0)
         self.about_button.grid(row=0, column=7, columnspan=2, sticky="e")
 
+        self.stay_mute_button = tk.Button(self, text="🔇", font=font.Font(size=14), justify='center', command=self.toggle_mute)
+        self.stay_mute_button.grid(row=7, column=0, columnspan=2, sticky="e", padx=(0,10))
+
         # Create a slider widget
         self.frequency_slider = tk.Scale(self, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.frequency_slider.grid(row=7, column=0, columnspan=2, padx=10, pady=2, sticky="ew")
+        self.frequency_slider.grid(row=7, column=0, columnspan=2, padx=(10,60), pady=2, sticky="ew")
 
         # Start/Stop Bot Button
         self.bot_toggle_button = tk.Button(self, text="Start Bot", command=self.toggle_bot)
@@ -617,6 +632,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print('Received command: ' + cmd)
             app.append_to_log('Received command: ' + cmd)
             self.do_command(e, cmd)
+            return
+
+        if app.mute:
+            return
+
         elif message.lower() == (self.username + " yes").lower() or message.lower() == \
                 ('@' + self.username + " yes").lower():
             c.privmsg(self.channel, ":)")
