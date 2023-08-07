@@ -3,6 +3,7 @@ import os
 import ctypes
 import json
 import queue
+import re
 import sys
 import threading
 import time
@@ -34,7 +35,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.21"  # Version Number
+    return "1.22"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -587,6 +588,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             "<author>": author,
             "<emotes>": ', '.join(map(str, self.emotes)),
             "<UTC>": str(datetime.now(timezone.utc)),
+            "<GMT>": str(datetime.now()),
             "<chatter_pronouns>": self.get_pronouns(author),
             "<streamer_pronouns>": self.get_pronouns(self.channel[1:]),
             "<users>": ', '.join(map(str, self.get_users()))
@@ -698,12 +700,18 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             )  # get a new response from GPT where it can see the function response
 
                         if hasattr(response, 'choices'):
+                            response.choices[0].message.content = \
+                                response.choices[0].message.content.strip().replace('\r', ' ').replace('\n', ' ')
+                            response.choices[0].message.content = ' '.join(
+                                re.split(r'(?<=[.:;])\s', response.choices[0].message.content)[:3])
                             while response.choices[0].message.content.startswith('.') or\
                                     response.choices[0].message.content.startswith('/'):
                                 response.choices[0].message.content = response.choices[0].message.content[1:]
                             if response.choices[0].message.content.lower().startswith(self.username.lower()):
                                 response.choices[0].message.content = response.choices[0].message.content[
                                                                       len(self.username):]
+                            while len(response.choices[0].message.content.encode('utf-8')) > 512:
+                                response.choices[0].message.content = response.choices[0].message.content[:-1]
                             c.privmsg(self.channel, response.choices[0].message.content[:500])
                             app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
                             break
