@@ -504,7 +504,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_join(self, c, e):
         user = e.source.split('!')[0].lower()
-        if user not in str(self.users) and \
+        if user not in str(app.user_list.get(0, tk.END)) and \
                 user != self.username.lower() and\
                 user != self.channel[1:].lower():
             self.users.append(user)
