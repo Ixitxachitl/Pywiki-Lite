@@ -23,4 +23,4 @@ Features:
 * Will get a list of users in chat if requested without using the tag. (Excluding the bot and the streamer)
 <br /><br />
 
-![Screenshot 2023-08-06 075105](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/18bd075c-7a34-4e2b-ba35-f1f7852c812b)
+![image](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/1958e662-b2c6-4b21-a7b3-39cdc9107e66)
