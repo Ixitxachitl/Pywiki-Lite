@@ -24,7 +24,6 @@ import tkinter as tk
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import webbrowser
-import urllib.parse
 
 
 def resource_path(relative_path):
