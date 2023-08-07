@@ -383,6 +383,7 @@ class TwitchBotGUI(tk.Tk):
         self.save_configuration()
         if self.bot_running:
             self.bot_toggle_button.config(relief="raised")
+            self.login_button.config(state=tk.NORMAL)
             self.client_id_entry.config(state="normal")
             self.client_secret_entry.config(state="normal")
             self.channel_entry.config(state="normal")
@@ -390,6 +391,7 @@ class TwitchBotGUI(tk.Tk):
             self.stop_bot()
         else:
             self.bot_toggle_button.config(relief="sunken")
+            self.login_button.config(state=tk.DISABLED)
             self.client_id_entry.config(state="disabled")
             self.client_secret_entry.config(state="disabled")
             self.channel_entry.config(state="disabled")
