@@ -272,35 +272,35 @@ class TwitchBotGUI(tk.Tk):
         if not config.read('config.ini'):
             return
 
-        if 'TwitchBot' in config:
-            section = config['TwitchBot']
-            self.username.set(section.get('username', ''))
-            self.client_id.set(section.get('ClientID', ''))
-            self.client_secret.set(section.get('ClientSecret', ''))
-            self.bot_token.set(section.get('BotOAuthToken', ''))
-            self.refresh_token.set(section.get('RefreshToken', ''))
-            self.channel.set(section.get('InitialChannels', ''))
-            self.openai_api_key.set(section.get('OpenAIAPIKey', ''))
-            if not section.get('InputString', ''):
-                self.input_text.insert(tk.END, "You are a twitch chatbot, your username is <name> and your pronouns "
-                                               "are They/Them. The name of the streamer is <channel> and their "
-                                               "pronouns are <streamer_pronouns>. The streamer is playing <game>. The "
-                                               "name of the chatter is <author> and their pronouns are "
-                                               "<chatter_pronouns>. The current date and time are: <UTC>. A list of "
-                                               "users in chat are: <users>. Global twitch emotes that you can use are"
-                                               " <emotes>.")
-            else:
-                self.input_text.insert(tk.END, section.get('InputString', ''))
+        section = config['TwitchBot']
+        self.username.set(section.get('username', ''))
+        self.client_id.set(section.get('ClientID', ''))
+        self.client_secret.set(section.get('ClientSecret', ''))
+        self.bot_token.set(section.get('BotOAuthToken', ''))
+        self.refresh_token.set(section.get('RefreshToken', ''))
+        self.channel.set(section.get('InitialChannels', ''))
+        self.openai_api_key.set(section.get('OpenAIAPIKey', ''))
+        if not section.get('InputString', ''):
+            self.input_text.insert(tk.END, "You are a twitch chatbot, your username is <name> and your pronouns "
+                                           "are They/Them. The name of the streamer is <channel> and their "
+                                           "pronouns are <streamer_pronouns>. The streamer is playing <game>. The "
+                                           "name of the chatter is <author> and their pronouns are "
+                                           "<chatter_pronouns>. The current date and time are: <UTC>. A list of "
+                                           "users in chat are: <users>. Global twitch emotes that you can use are"
+                                           " <emotes>.")
+        else:
+            self.input_text.insert(tk.END, section.get('InputString', ''))
 
-            if not section.get('Model', ''):
-                self.openai_api_model.set('gpt-4-0613')
-            else:
-                self.openai_api_model.set(section.get('Model', ''))
+        if not section.get('Model', ''):
+            self.openai_api_model.set('gpt-4-0613')
+        else:
+            self.openai_api_model.set(section.get('Model', ''))
 
-            if not section.get('Frequency', ''):
-                self.frequency_slider.set(0)
-            else:
-                self.frequency_slider.set(section.get('Frequency', ''))
+        if not section.get('Frequency', ''):
+            self.frequency_slider.set(0)
+        else:
+            self.frequency_slider.set(section.get('Frequency', ''))
+
 
     def save_configuration(self):
         config = configparser.ConfigParser()
