@@ -9,7 +9,6 @@ import time
 
 import configparser
 import random
-import re
 import traceback
 
 import irc.bot
@@ -35,7 +34,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.20"  # Version Number
+    return "1.21"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -485,7 +484,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def get_users(self, **kwargs):
         self.connection.users()
-        return str(self.users)
+        return str(app.user_list.get(0, tk.END))
 
     def on_namreply(self, c, e):
         self.users = e.arguments[2].split()
@@ -590,7 +589,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             "<UTC>": str(datetime.now(timezone.utc)),
             "<chatter_pronouns>": self.get_pronouns(author),
             "<streamer_pronouns>": self.get_pronouns(self.channel[1:]),
-            "<users>": ', '.join(map(str, self.users))
+            "<users>": ', '.join(map(str, self.get_users()))
         }
 
         for placeholder, replacement in replacements.items():
@@ -699,13 +698,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             )  # get a new response from GPT where it can see the function response
 
                         if hasattr(response, 'choices'):
-                            response.choices[0].message.content = \
-                                response.choices[0].message.content.strip().replace('\r', ' ').replace('\n', ' ')
-                            response.choices[0].message.content = ' '.join(
-                                re.split(r'(?<=[.:;])\s', response.choices[0].message.content)[:3])
-                            while response.choices[0].message.content.startswith('.') or response.choices[
-                                0].message.content.startswith(
-                                '/'):
+                            while response.choices[0].message.content.startswith('.') or\
+                                    response.choices[0].message.content.startswith('/'):
                                 response.choices[0].message.content = response.choices[0].message.content[1:]
                             if response.choices[0].message.content.lower().startswith(self.username.lower()):
                                 response.choices[0].message.content = response.choices[0].message.content[
