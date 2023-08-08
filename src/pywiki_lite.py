@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.25"  # Version Number
+    return "1.26"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -242,6 +242,19 @@ class TwitchBotGUI(tk.Tk):
     def twitch_login(self):
         self.open_browser_and_start_server()
 
+    def refresh_login(self):
+        auth_params = {
+            'client_id': self.client_id.get(),
+            'client_secret': self.client_secret.get(),
+            'grant_type': 'refresh_token',
+            'refresh_token': self.refresh_token.get(),
+        }
+        response = requests.post('https://id.twitch.tv/oauth2/token', data=auth_params)
+        data = response.json()
+        print(data)
+        self.bot_token.set(data['access_token'])
+        self.refresh_token.set(data['refresh_token'])
+
     def open_browser_and_start_server(self):
         print('Logging in...')
         print(self.client_id.get())
@@ -303,7 +316,7 @@ class TwitchBotGUI(tk.Tk):
         else:
             self.frequency_slider.set(section.get('Frequency', ''))
 
-        self.ignore_userlist.set(section.get('IgnoreUsers', 0))
+        self.ignore_userlist.set(int(section.get('IgnoreUsers', '0')))
 
 
     def save_configuration(self):
@@ -327,6 +340,7 @@ class TwitchBotGUI(tk.Tk):
 
     def start_bot(self):
         if not self.bot_running:
+            self.refresh_login()
             self.bot_running = True
             self.bot_toggle_button.config(text="Stop Bot")
 
@@ -464,10 +478,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.pronoun_cache = {}
         self.users = []
 
-        '''
+
         url = 'https://id.twitch.tv/oauth2/validate'
         headers = {'Authorization': 'OAuth ' + self.token}
-        '''
+
 
         # Get the channel id, we will need this for v5 API calls
         url = 'https://api.twitch.tv/helix/users?login=' + channel
@@ -553,7 +567,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     '''
     def get_followage(self, user):
         url = 'https://api.twitch.tv/helix/users?login=' + user
-        headers = {'Authorization': 'Bearer ' + self.user_credentials,
+        headers = {'Authorization': 'Bearer ' + self.token,
                    'Client-ID': self.client_id,
                    'Content-Type': 'application/json'}
         r = requests.get(url, headers=headers).json()
