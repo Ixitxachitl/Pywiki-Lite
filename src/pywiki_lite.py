@@ -18,7 +18,7 @@ import argparse
 import openai
 from datetime import datetime, timezone
 
-from tkinter import messagebox, ttk, font
+from tkinter import messagebox, ttk, font, IntVar
 import tkinter.scrolledtext as tkscrolled
 import tkinter as tk
 
@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.24"  # Version Number
+    return "1.25"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -46,7 +46,7 @@ class TwitchBotGUI(tk.Tk):
         super().__init__()
 
         self.title("pyWiki Lite")
-        self.geometry("1000x420")
+        self.geometry("1000x425")
         self.iconbitmap(default=resource_path('icon.ico'))
 
         # Make the window non-resizable
@@ -61,6 +61,7 @@ class TwitchBotGUI(tk.Tk):
         self.channel = tk.StringVar()
         self.openai_api_key = tk.StringVar()
         self.openai_api_model = tk.StringVar()
+        self.ignore_userlist = IntVar()
 
         # Variable to keep track of the bot state
         self.bot_running = False
@@ -137,9 +138,8 @@ class TwitchBotGUI(tk.Tk):
         tk.Label(self, text="pyWiki Lite Configuration", font=("Helvetica", 16)).grid(row=0, column=0, columnspan=2,
                                                                                       pady=10, padx=10, sticky='w')
         tk.Label(self, text="Context", font=("Helvetica", 16)).grid(row=0, column=3, columnspan=1,
-                                                                    pady=10, padx=(0, 10), sticky='w')
-        tk.Label(self, text="Users", font=("Helvetica", 16)).grid(row=0, column=5, columnspan=1,
-                                                                    pady=10, padx=(0, 10), sticky='w')
+                                                                    pady=0, padx=(0, 10), sticky='w')
+        tk.Label(self, text="Users", font=("Helvetica", 16)).grid(row=0, column=5, columnspan=1, padx=(0, 10), sticky='w')
         self.user_count = tk.Label(self, text="", font=("Helvetica 16 bold"))
         self.user_count.grid(row=0, column=6, columnspan=1, pady=10, padx=(0, 10), sticky='w')
 
@@ -201,31 +201,33 @@ class TwitchBotGUI(tk.Tk):
         self.about_button.grid(row=0, column=7, columnspan=2, sticky="e")
 
         self.stay_mute_button = tk.Button(self, text="🔇", font=font.Font(size=14), justify='center', command=self.toggle_mute)
-        self.stay_mute_button.grid(row=6, column=0, columnspan=2, sticky="e", padx=(0,10))
+        self.stay_mute_button.grid(row=6, column=0, columnspan=2, sticky="e", padx=(0, 10))
 
         # Create a slider widget
         self.frequency_slider = tk.Scale(self, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.frequency_slider.grid(row=6, column=0, columnspan=2, padx=(10,60), pady=2, sticky="ew")
+        self.frequency_slider.grid(row=6, column=0, columnspan=2, padx=(10,60), pady=0, sticky="ew")
 
         # Start/Stop Bot Button
         self.bot_toggle_button = tk.Button(self, text="Start Bot", command=self.toggle_bot)
         self.bot_toggle_button.grid(row=0, column=1, columnspan=1, sticky="e", pady=10, padx=10)
 
         # Create a Text widget to display bot messages
-        self.log_text = tkscrolled.ScrolledText(self, wrap="word", height=12, state=tk.DISABLED)
-        self.log_text.grid(row=7, column=0, columnspan=2, padx=10, pady=(3, 0), sticky="ew")
+        self.log_text = tkscrolled.ScrolledText(self, wrap="word", height=11, state=tk.DISABLED)
+        self.log_text.grid(row=7, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="ewn")
 
         # Create a Text widget to display the input string
         self.input_text = tkscrolled.ScrolledText(self, wrap="word", height=22, width=40, undo=True,
                                                   autoseparators=True, maxundo=-1)
-        self.input_text.grid(row=1, column=3, columnspan=2, rowspan=9, padx=(0, 10), pady=2, sticky="ne")
+        self.input_text.grid(row=1, column=3, columnspan=2, rowspan=7, padx=(0, 10), pady=(10,0), sticky="ne")
 
         # Create a Listbox to display users
+        self.ignore_userlist_check = tk.Checkbutton(self, text="Ignore User List", variable=self.ignore_userlist, onvalue = 1,
+                      offvalue = 0).grid(row=1, column=5, columnspan=3, sticky='nw', pady=0)
         self.user_list_scroll = tk.Scrollbar(self, orient="vertical")
-        self.user_list_scroll.grid(row=1, column=8, columnspan=1, rowspan=9, pady=1, padx=(0, 10), sticky="ns")
-        self.user_list = tk.Listbox(self, height=22, selectmode='SINGLE', width=30, yscrollcommand=self.user_list_scroll.set)
+        self.user_list_scroll.grid(row=2, column=8, columnspan=1, rowspan=6, pady=0, padx=(0, 10), sticky="ns")
+        self.user_list = tk.Listbox(self, height=21, selectmode='SINGLE', width=30, yscrollcommand=self.user_list_scroll.set)
         self.user_list_scroll.config(command=self.user_list.yview)
-        self.user_list.grid(row=1, column=5, columnspan=3, rowspan=9, pady=1, sticky="ne")
+        self.user_list.grid(row=2, column=5, columnspan=3, rowspan=6, pady=0, sticky="ne")
         self.user_list.bind('<FocusOut>', lambda e: self.user_list.selection_clear(0, tk.END))
         self.user_list.bind('<ButtonRelease-1>', self.show_popup)
 
@@ -301,6 +303,8 @@ class TwitchBotGUI(tk.Tk):
         else:
             self.frequency_slider.set(section.get('Frequency', ''))
 
+        self.ignore_userlist.set(section.get('IgnoreUsers', 0))
+
 
     def save_configuration(self):
         config = configparser.ConfigParser()
@@ -315,6 +319,7 @@ class TwitchBotGUI(tk.Tk):
             'InputString': self.input_text.get('1.0', 'end'),
             'Model': self.openai_api_model.get(),
             'Frequency': self.frequency_slider.get(),
+            'IgnoreUsers': self.ignore_userlist.get()
         }
 
         with open('config.ini', 'w') as configfile:
@@ -560,7 +565,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def get_users(self, **kwargs):
         self.connection.users()
-        return str(app.user_list.get(0, tk.END))
+        if app.ignore_userlist.get() == 1:
+            return 'unknown'
+        else:
+            return str(app.user_list.get(0, tk.END))
 
     def on_namreply(self, c, e):
         self.users = e.arguments[2].split()
