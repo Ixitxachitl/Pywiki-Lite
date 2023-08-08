@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.27"  # Version Number
+    return "1.28"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -229,15 +229,37 @@ class TwitchBotGUI(tk.Tk):
         self.user_list_scroll.config(command=self.user_list.yview)
         self.user_list.grid(row=2, column=5, columnspan=3, rowspan=6, pady=0, sticky="ne")
         self.user_list.bind('<FocusOut>', lambda e: self.user_list.selection_clear(0, tk.END))
-        self.user_list.bind('<ButtonRelease-1>', self.show_popup)
+        self.user_list.bind('<Double-Button-1>', self.show_popup)
 
     def show_popup(self, event):
         selected_index = self.user_list.curselection()
         if selected_index:
             item_index = int(selected_index[0])
             selected_item = self.user_list.get(item_index)
-            # followage = self.bot.get_followage(selected_item)
-            # messagebox.showinfo("Information", selected_item + ' followed on ' + followage)
+            url = 'https://api.twitch.tv/helix/users?login=' + selected_item
+            headers = {
+                    'Authorization': 'Bearer ' + self.bot_token.get(),
+                    'Client-Id': self.client_id.get(),
+                    'Content-Type': 'application/json',
+            }
+            while True:
+                response = requests.get(url, headers=headers)
+
+                if response.status_code == 200:
+                    break
+                elif response.status_code == 401:
+                    self.refresh_login()
+                else:
+                    # Handle other status codes if needed
+                    messagebox.showerror("Error", "Error fetching data: " + str(response.status_code))
+                    return
+
+            # Now you can safely access the data from the response
+            try:
+                created_at = response.json()['data'][0]['created_at']
+                messagebox.showinfo("Information", selected_item + ' created on ' + created_at)
+            except KeyError:
+                messagebox.showerror("Error", "Error parsing response data")
 
     def twitch_login(self):
         self.open_browser_and_start_server()
@@ -251,7 +273,6 @@ class TwitchBotGUI(tk.Tk):
         }
         response = requests.post('https://id.twitch.tv/oauth2/token', data=auth_params)
         data = response.json()
-        print(data)
         self.bot_token.set(data['access_token'])
         self.refresh_token.set(data['refresh_token'])
 
