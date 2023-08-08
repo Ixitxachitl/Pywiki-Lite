@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.26"  # Version Number
+    return "1.27"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -705,6 +705,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         app.append_to_log('Disconnected')
 
     def on_ctcp(self, c, e):
+        nick = e.source.nick
+        if e.arguments[0] == "VERSION":
+            c.ctcp_reply(nick, "VERSION " + self.get_version())
+        elif e.arguments[0] == "PING":
+            if len(e.arguments) > 1:
+                c.ctcp_reply(nick, "PING " + e.arguments[1])
+        elif (
+            e.arguments[0] == "DCC"
+            and e.arguments[1].split(" ", 1)[0] == "CHAT"
+        ):
+            self.on_dccchat(c, e)
         message = e.arguments[1]
         author = ''
         for tag in e.tags:
@@ -805,7 +816,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             if response.choices[0].message.content.lower().startswith(self.username.lower()):
                                 response.choices[0].message.content = response.choices[0].message.content[
                                                                       len(self.username):]
-                            while len(('PRIVMSG' + self.channel + " " + response.choices[0].message.content + '\r\n').encode()) > 512:
+                            while len(('PRIVMSG' + self.channel + " " + response.choices[0].message.content + '\r\n').encode()) > 488:
                                 response.choices[0].message.content = response.choices[0].message.content[:-1]
                             c.privmsg(self.channel, response.choices[0].message.content[:500])
                             app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
