@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.29"  # Version Number
+    return "1.30"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -659,7 +659,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             url = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?mode=list'
         else:
             url = 'https://ll.thespacedevs.com/2.2.0/launch/previous/?mode=list'
-        return json.dumps(requests.get(url).json()["results"][0])
+        return json.dumps(requests.get(url).json()["results"[:2]])
 
     def get_pronouns(self, author, **kwargs):
         # Check if pronouns exist in the cache
