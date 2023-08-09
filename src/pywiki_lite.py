@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.28"  # Version Number
+    return "1.29"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -321,7 +321,7 @@ class TwitchBotGUI(tk.Tk):
                                            "are They/Them. The name of the streamer is <channel> and their "
                                            "pronouns are <streamer_pronouns>. The streamer is playing <game>. The "
                                            "name of the chatter is <author> and their pronouns are "
-                                           "<chatter_pronouns>. The current date and time are: <UTC>. A list of "
+                                           "<chatter_pronouns>. The current date and time are: <time>. A list of "
                                            "users in chat are: <users>. Global twitch emotes that you can use are"
                                            " <emotes>.")
         else:
@@ -706,7 +706,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             "<author>": author,
             "<emotes>": ', '.join(map(str, self.emotes)),
             "<UTC>": str(datetime.now(timezone.utc)),
-            "<GMT>": str(datetime.now()),
+            "<time>": str(datetime.now()),
             "<chatter_pronouns>": self.get_pronouns(author),
             "<streamer_pronouns>": self.get_pronouns(self.channel[1:]),
             "<users>": ', '.join(map(str, self.get_users()))
