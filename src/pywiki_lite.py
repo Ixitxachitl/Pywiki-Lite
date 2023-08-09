@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.30"  # Version Number
+    return "1.31"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -539,7 +539,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     "properties": {
                         "user": {
                             "type": "string",
-                            "description": "The name of the person to look up pronouns for.",
+                            "description": "The name of the person to look up pronouns for",
                         },
                     },
                     "required": ["user"],
@@ -567,6 +567,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     },
                 },
             },
+            {
+                "name": "get_stream",
+                "description": "Gets information about a stream by streamer",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "streamer": {
+                            "type": "string",
+                            "description": "the name of the streamer to look up"
+                        },
+                    },
+                },
+            },
         ]
 
         # Create IRC bot connection
@@ -584,6 +597,33 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                    'Content-Type': 'application/json'}
         r = requests.get(url, headers=headers).json()
         return r['data'][0]['game_name']
+
+    def get_stream(self, streamer, **kwargs):
+        url = 'https://api.twitch.tv/helix/search/channels?query=' + streamer + '&first=1'
+        headers = {
+            'Authorization': 'Bearer ' + app.bot_token.get(),
+            'Client-Id': app.client_id.get(),
+            'Content-Type': 'application/json',
+        }
+        while True:
+            response = requests.get(url, headers=headers)
+            print(json.dumps(response.json()))
+
+            if response.status_code == 200:
+                break
+            elif response.status_code == 401:
+                app.refresh_login()
+            else:
+                # Handle other status codes if needed
+                return "Error fetching data: " + str(response.status_code)
+
+        # Now you can safely access the data from the response
+        try:
+            stream = json.dumps(response.json()['data'][0])
+            return stream
+        except KeyError:
+            return "Error parsing response data"
+
 
     '''
     def get_followage(self, user):
@@ -804,6 +844,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 "get_user_pronouns": self.get_pronouns,
                                 "get_launch": self.get_launch,
                                 "get_users": self.get_users,
+                                "get_stream": self.get_stream,
                             }  # only one function in this example, but you can have multiple
                             function_name = response_message["function_call"]["name"]
                             function_to_call = available_functions[function_name]
@@ -811,6 +852,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             function_response = function_to_call(
                                 author=function_args.get("user"),
                                 when=function_args.get("when"),
+                                streamer=function_args.get("streamer"),
                             )
 
                             # Step 4: send the info on the function call and function response to GPT
