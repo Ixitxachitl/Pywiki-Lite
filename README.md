@@ -27,4 +27,5 @@ Features:
 ![image](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/66bae59d-eab1-4342-a894-bc659ef05a52)
 
 <img width="100" src="https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/351412ee-135d-45a5-bf8c-4d0e00c25658">
+
 [Ko-fi](https://ko-fi.com/pywiki/)
