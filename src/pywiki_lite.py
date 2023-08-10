@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.31"  # Version Number
+    return "1.32"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -487,48 +487,22 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.client_secret = client_secret
         self.token = token
         self.channel = '#' + channel
-        self.client_credentials = requests.post('https://id.twitch.tv/oauth2/token?client_id='
-                                                + self.client_id
-                                                + '&client_secret='
-                                                + self.client_secret
-                                                + '&grant_type=client_credentials'
-                                                + '').json()
+        #self.client_credentials = requests.post('https://id.twitch.tv/oauth2/token?client_id='
+        #                                        + self.client_id
+        #                                        + '&client_secret='
+        #                                        + self.client_secret
+        #                                        + '&grant_type=client_credentials'
+        #                                        + '').json()
         #print(self.client_credentials)
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
         self.pronoun_cache = {}
         self.users = []
 
-
-        url = 'https://id.twitch.tv/oauth2/validate'
-        headers = {'Authorization': 'OAuth ' + self.token}
-
-
-        # Get the channel id, we will need this for v5 API calls
-        url = 'https://api.twitch.tv/helix/users?login=' + channel
-        headers = {'Authorization': 'Bearer ' + self.client_credentials['access_token'],
-                   'Client-ID': self.client_id,
-                   'Content-Type': 'application/json'}
-        r = requests.get(url, headers=headers).json()
-        self.channel_id = r['data'][0]['id']
-
-        # Get the user id, we will need this for v5 API calls
-        url = 'https://api.twitch.tv/helix/users?login=' + username
-        headers = {'Authorization': 'Bearer ' + self.client_credentials['access_token'],
-                   'Client-ID': self.client_id,
-                   'Content-Type': 'application/json'}
-        r = requests.get(url, headers=headers).json()
-        self.user_id = r['data'][0]['id']
-
-        # Get list of global emotes
-        url = 'https://api.twitch.tv/helix/chat/emotes/global'
-        headers = {'Authorization': 'Bearer ' + self.client_credentials['access_token'],
-                   'Client-ID': self.client_id,
-                   'Content-Type': 'application/json'}
-        r = requests.get(url, headers=headers).json()
-        self.emotes = []
-        for emote in r['data']:
-            self.emotes.append(emote['name'])
+        self.verify()
+        self.channel_id = self.get_channel_id(channel)
+        self.user_id = self.get_channel_id(username)
+        self.emotes = self.get_emotes()
 
         self.functions = [
             {
@@ -589,14 +563,107 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         app.append_to_log('Connecting to ' + server + ' on port ' + str(port) + '...')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:' + token)], username, username)
 
-    def get_game(self):
+    def verify(self):
+        url = 'https://id.twitch.tv/oauth2/validate'
+        headers = {'Authorization': 'OAuth ' + app.bot_token.get()}
+        while True:
+            response = requests.get(url, headers=headers)
+
+            if response.status_code == 200:
+                break
+            elif response.status_code == 401:
+                app.refresh_login()
+            else:
+                # Handle other status codes if needed
+                return "Error fetching data: " + str(response.status_code)
+
+        # Now you can safely access the data from the response
+        try:
+            verification = response.json()
+            return verification
+        except KeyError:
+            return "Error parsing response data"
+
+    def get_channel_id(self, channel, **kwargs):
+        # Get the channel id, we will need this for v5 API calls
+        url = 'https://api.twitch.tv/helix/users?login=' + channel
+        headers = {
+            'Authorization': 'Bearer ' + app.bot_token.get(),
+            'Client-Id': app.client_id.get(),
+            'Content-Type': 'application/json',
+        }
+
+        while True:
+            response = requests.get(url, headers=headers)
+
+            if response.status_code == 200:
+                break
+            elif response.status_code == 401:
+                app.refresh_login()
+            else:
+                # Handle other status codes if needed
+                return "Error fetching data: " + str(response.status_code)
+
+        # Now you can safely access the data from the response
+        try:
+            channel_id = response.json()['data'][0]['id']
+            return channel_id
+        except KeyError:
+            return "Error parsing response data"
+
+    def get_game(self, channel,**kwargs):
         # Get the current game
-        url = 'https://api.twitch.tv/helix/channels?broadcaster_id=' + self.channel_id
-        headers = {'Authorization': 'Bearer ' + self.client_credentials['access_token'],
-                   'Client-ID': self.client_id,
-                   'Content-Type': 'application/json'}
-        r = requests.get(url, headers=headers).json()
-        return r['data'][0]['game_name']
+        url = 'https://api.twitch.tv/helix/channels?broadcaster_id=' + channel
+        headers = {
+            'Authorization': 'Bearer ' + app.bot_token.get(),
+            'Client-Id': app.client_id.get(),
+            'Content-Type': 'application/json',
+        }
+        while True:
+            response = requests.get(url, headers=headers)
+
+            if response.status_code == 200:
+                break
+            elif response.status_code == 401:
+                app.refresh_login()
+            else:
+                # Handle other status codes if needed
+                return "Error fetching data: " + str(response.status_code)
+
+        # Now you can safely access the data from the response
+        try:
+            game_name = response.json()['data'][0]['game_name']
+            return game_name
+        except KeyError:
+            return "Error parsing response data"
+
+    def get_emotes(self, **kwargs):
+        # Get list of global emotes
+        url = 'https://api.twitch.tv/helix/chat/emotes/global'
+        headers = {
+            'Authorization': 'Bearer ' + app.bot_token.get(),
+            'Client-Id': app.client_id.get(),
+            'Content-Type': 'application/json',
+        }
+        while True:
+            response = requests.get(url, headers=headers)
+
+            if response.status_code == 200:
+                break
+            elif response.status_code == 401:
+                app.refresh_login()
+            else:
+                # Handle other status codes if needed
+                return "Error fetching data: " + str(response.status_code)
+
+        # Now you can safely access the data from the response
+        try:
+            emotes = []
+            for emote in response.json()['data']:
+                emotes.append(emote['name'])
+            return emotes
+        except KeyError:
+            return "Error parsing response data"
 
     def get_stream(self, streamer, **kwargs):
         url = 'https://api.twitch.tv/helix/search/channels?query=' + streamer + '&first=1'
@@ -607,7 +674,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         }
         while True:
             response = requests.get(url, headers=headers)
-            print(json.dumps(response.json()))
 
             if response.status_code == 200:
                 break
@@ -623,7 +689,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return stream
         except KeyError:
             return "Error parsing response data"
-
 
     '''
     def get_followage(self, user):
@@ -742,7 +807,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         replacements = {
             "<name>": self.username,
             "<channel>": self.channel[1:],
-            "<game>": self.get_game(),
+            "<game>": self.get_game(self.channel[1:]),
             "<author>": author,
             "<emotes>": ', '.join(map(str, self.emotes)),
             "<UTC>": str(datetime.now(timezone.utc)),
