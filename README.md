@@ -26,6 +26,4 @@ Features:
 
 ![image](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/66bae59d-eab1-4342-a894-bc659ef05a52)
 
-[<img width="100" src="https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/351412ee-135d-45a5-bf8c-4d0e00c25658">](https://ko-fi.com/pywiki/)
-
- ^dude doesn't know how to link to not an image? [Ko-fi](https://ko-fi.com/pywiki/)
+[<img width="100" src="https://uploads-ssl.webflow.com/5c14e387dab576fe667689cf/6494083ae7c39da6541f3c3e_TextLogo_white_stroke%402x-p-500.png">](https://ko-fi.com/pywiki/)
