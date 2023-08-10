@@ -16,10 +16,10 @@ Tags for Context:
 * \<users> : A CSV of the users in chat (Pulled from irc, may take time to update, large lists can use a lot of tokens, so you may not want to use this tag)
 <br /><br />
 Features:
-* *Pronouns from https://pronouns.alejo.io/
-* *Previous and next rocket launch from https://thespacedevs.com/
+* Pronouns from https://pronouns.alejo.io/
+* Previous and next rocket launch from https://thespacedevs.com/
 * Auto-reply frequency slider (% per message)
-* GPT model (*Features are available currently in 0613 builds, if you don't have access to gpt-4 please set it to one of the gpt-3-turbo options)
+* GPT model (If you don't have access to gpt-4 please set it to one of the gpt-3-turbo options)
 * Will get a list of users in chat if requested without using the tag. (Excluding the bot and the streamer unless the ignore box is checked)
 * Double click user to see account creation date
 <br /><br />
