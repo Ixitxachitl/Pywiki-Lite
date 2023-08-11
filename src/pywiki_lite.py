@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.35"  # Version Number
+    return "1.36"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -287,7 +287,7 @@ class TwitchBotGUI(tk.Tk):
             'client_id': self.client_id.get(),
             'redirect_uri': 'http://localhost:3000',
             'response_type': 'code',
-            'scope': 'chat:read+chat:edit+channel:moderate+whispers:read+whispers:edit+channel_editor+moderator:read:followers',
+            'scope': 'chat:read+chat:edit+channel:moderate+whispers:read+whispers:edit+channel_editor+user:read:follows+moderator:read:followers',
             'force_verify': 'true',
         }
         auth_url = 'https://id.twitch.tv/oauth2/authorize?' + '&'.join([f'{k}={v}' for k, v in auth_params.items()])
@@ -703,7 +703,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         headers = {'Authorization': 'Bearer ' + app.bot_token.get(),
                    'Client-ID': app.client_id.get(),
                    'Content-Type': 'application/json'}
-        url = 'https://api.twitch.tv/helix/channels/followers?broadcaster_id=' + self.channel_id + '&user_id=' + self.get_channel_id(user)
+        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + self.get_channel_id(user) + '&broadcaster_id=' + self.channel_id
 
         while True:
             response = requests.get(url, headers=headers)
@@ -718,12 +718,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # Now you can safely access the data from the response
         try:
+            print(response.json())
             followage = response.json()['data'][0]['followed_at']
             return followage
         except KeyError:
             return "Error parsing response data"
         except IndexError:
-            return "Error (Not Mod or Not Following)"
+            return "Not Following or Missing Privileges"
 
     def get_users(self, **kwargs):
         self.connection.users()
