@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.33"  # Version Number
+    return "1.34"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -489,15 +489,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.client_secret = client_secret
         self.token = token
         self.channel = '#' + channel
-        #self.client_credentials = requests.post('https://id.twitch.tv/oauth2/token?client_id='
-        #                                        + self.client_id
-        #                                        + '&client_secret='
-        #                                        + self.client_secret
-        #                                        + '&grant_type=client_credentials'
-        #                                        + '').json()
-        #print(self.client_credentials)
+
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
+
         self.pronoun_cache = {}
         self.users = []
 
@@ -702,12 +697,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         except IndexError:
             return "Missing response data"
 
-    '''
+
     def get_followage(self, user, **kwargs):
-        headers = {'Authorization': 'Bearer ' + app.channel_token.get(),
+        headers = {'Authorization': 'Bearer ' + app.bot_token.get(),
                    'Client-ID': app.client_id.get(),
                    'Content-Type': 'application/json'}
-        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + self.get_channel_id(user) + '&broadcaster_id=' + self.user_id
+        url = 'https://api.twitch.tv/helix/channels/followers?broadcaster_id=' + self.channel_id + '&user_id=' + self.get_channel_id(user)
 
         while True:
             response = requests.get(url, headers=headers)
@@ -728,7 +723,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return "Error parsing response data"
         except IndexError:
             return "Missing response data"
-    '''
 
     def get_users(self, **kwargs):
         self.connection.users()
