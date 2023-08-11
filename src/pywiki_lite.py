@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.34"  # Version Number
+    return "1.35"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -257,7 +257,8 @@ class TwitchBotGUI(tk.Tk):
             # Now you can safely access the data from the response
             try:
                 created_at = response.json()['data'][0]['created_at']
-                messagebox.showinfo("Information", selected_item + ' created on ' + created_at)
+                followed_at = self.bot.get_followage(selected_item)
+                messagebox.showinfo(selected_item, 'Created on: ' + created_at + '\nFollowed on: ' + followed_at)
             except KeyError:
                 messagebox.showerror("Error", "Error parsing response data")
             except IndexError:
@@ -717,12 +718,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # Now you can safely access the data from the response
         try:
-            followage = json.dumps(response.json()['data'][0]['followed_at'])
+            followage = response.json()['data'][0]['followed_at']
             return followage
         except KeyError:
             return "Error parsing response data"
         except IndexError:
-            return "Missing response data"
+            return "Error (Not Mod or Not Following)"
 
     def get_users(self, **kwargs):
         self.connection.users()
