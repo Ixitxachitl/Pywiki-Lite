@@ -702,7 +702,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         except IndexError:
             return "Missing response data"
 
-'''
+    '''
     def get_followage(self, user, **kwargs):
         headers = {'Authorization': 'Bearer ' + app.channel_token.get(),
                    'Client-ID': app.client_id.get(),
@@ -728,7 +728,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return "Error parsing response data"
         except IndexError:
             return "Missing response data"
-'''
+    '''
 
     def get_users(self, **kwargs):
         self.connection.users()
