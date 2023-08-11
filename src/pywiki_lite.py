@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.32"  # Version Number
+    return "1.33"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -260,6 +260,8 @@ class TwitchBotGUI(tk.Tk):
                 messagebox.showinfo("Information", selected_item + ' created on ' + created_at)
             except KeyError:
                 messagebox.showerror("Error", "Error parsing response data")
+            except IndexError:
+                messagebox.showerror("Error", "Missing response data")
 
     def twitch_login(self):
         self.open_browser_and_start_server()
@@ -284,7 +286,7 @@ class TwitchBotGUI(tk.Tk):
             'client_id': self.client_id.get(),
             'redirect_uri': 'http://localhost:3000',
             'response_type': 'code',
-            'scope': 'chat:read+chat:edit+channel:moderate+whispers:read+whispers:edit+channel_editor',
+            'scope': 'chat:read+chat:edit+channel:moderate+whispers:read+whispers:edit+channel_editor+moderator:read:followers',
             'force_verify': 'true',
         }
         auth_url = 'https://id.twitch.tv/oauth2/authorize?' + '&'.join([f'{k}={v}' for k, v in auth_params.items()])
@@ -583,6 +585,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return verification
         except KeyError:
             return "Error parsing response data"
+        except IndexError:
+            return "Missing response data"
 
     def get_channel_id(self, channel, **kwargs):
         # Get the channel id, we will need this for v5 API calls
@@ -610,6 +614,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return channel_id
         except KeyError:
             return "Error parsing response data"
+        except IndexError:
+            return "Missing response data"
 
     def get_game(self, channel,**kwargs):
         # Get the current game
@@ -636,6 +642,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return game_name
         except KeyError:
             return "Error parsing response data"
+        except IndexError:
+            return "Missing response data"
 
     def get_emotes(self, **kwargs):
         # Get list of global emotes
@@ -664,6 +672,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return emotes
         except KeyError:
             return "Error parsing response data"
+        except IndexError:
+            return "Missing response data"
 
     def get_stream(self, streamer, **kwargs):
         url = 'https://api.twitch.tv/helix/search/channels?query=' + streamer + '&first=1'
@@ -689,19 +699,36 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return stream
         except KeyError:
             return "Error parsing response data"
+        except IndexError:
+            return "Missing response data"
 
-    '''
-    def get_followage(self, user):
-        url = 'https://api.twitch.tv/helix/users?login=' + user
-        headers = {'Authorization': 'Bearer ' + self.token,
-                   'Client-ID': self.client_id,
+'''
+    def get_followage(self, user, **kwargs):
+        headers = {'Authorization': 'Bearer ' + app.channel_token.get(),
+                   'Client-ID': app.client_id.get(),
                    'Content-Type': 'application/json'}
-        r = requests.get(url, headers=headers).json()
-        user_id = r['data'][0]['id']
-        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + user_id + '&broadcaster_id=' + self.user_id
-        r = requests.get(url, headers=headers).json()
-        return r['data'][0]['followed_at']
-    '''
+        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + self.get_channel_id(user) + '&broadcaster_id=' + self.user_id
+
+        while True:
+            response = requests.get(url, headers=headers)
+
+            if response.status_code == 200:
+                break
+            elif response.status_code == 401:
+                app.refresh_login()
+            else:
+                # Handle other status codes if needed
+                return "Error fetching data: " + str(response.status_code)
+
+        # Now you can safely access the data from the response
+        try:
+            followage = json.dumps(response.json()['data'][0]['followed_at'])
+            return followage
+        except KeyError:
+            return "Error parsing response data"
+        except IndexError:
+            return "Missing response data"
+'''
 
     def get_users(self, **kwargs):
         self.connection.users()
@@ -715,7 +742,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         for user in self.users:
             if user == self.channel[1:].lower():
                 self.users.remove(self.channel[1:].lower())
-            if user == self.username.lower():
+            elif user == self.username.lower():
                 self.users.remove(self.username.lower())
 
         for user in self.users:
