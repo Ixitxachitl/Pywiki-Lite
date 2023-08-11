@@ -37,7 +37,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.36"  # Version Number
+    return "1.37"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -714,11 +714,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 app.refresh_login()
             else:
                 # Handle other status codes if needed
-                return "Error fetching data: " + str(response.status_code)
+                return "Error fetching data: " + str(response.json()['message'])
 
         # Now you can safely access the data from the response
         try:
-            print(response.json())
             followage = response.json()['data'][0]['followed_at']
             return followage
         except KeyError:
