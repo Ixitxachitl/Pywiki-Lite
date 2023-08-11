@@ -16,13 +16,14 @@ Tags for Context:
 * \<users> : A CSV of the users in chat (Pulled from irc, may take time to update, large lists can use a lot of tokens, so you may not want to use this tag)
 <br /><br />
 Features:
-* *Pronouns from https://pronouns.alejo.io/
-* *Previous and next rocket launch from https://thespacedevs.com/
+* Pronouns from https://pronouns.alejo.io/
+* Previous and next rocket launch from https://thespacedevs.com/
 * Auto-reply frequency slider (% per message)
-* GPT model (*Features are available currently in 0613 builds, if you don't have access to gpt-4 please set it to one of the gpt-3-turbo options)
+* GPT model (If you don't have access to gpt-4 please set it to one of the gpt-3-turbo options)
 * Will get a list of users in chat if requested without using the tag. (Excluding the bot and the streamer unless the ignore box is checked)
 * Double click user to see account creation date
 <br /><br />
 
 ![image](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/66bae59d-eab1-4342-a894-bc659ef05a52)
 
+[<img width="100" src="https://uploads-ssl.webflow.com/5c14e387dab576fe667689cf/6494083ae7c39da6541f3c3e_TextLogo_white_stroke%402x-p-500.png">](https://ko-fi.com/pywiki/)
