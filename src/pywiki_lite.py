@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import collections
 import os
 import ctypes
 import json
@@ -38,7 +39,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def get_version():
-    return "1.39"  # Version Number
+    return "1.40"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -511,6 +512,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         self.pronoun_cache = {}
         self.users = []
+        self.message_queue = collections.deque(maxlen=5)
 
         self.verify()
         self.channel_id = self.get_channel_id(channel)
@@ -897,6 +899,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         sentences = input_string.split('. ')
         parsed_list = [{"role": "system", "content": sentence} for sentence in sentences]
+
+        for m in self.message_queue:
+            if m.split(': ')[0] == self.username.lower():
+                parsed_list.append({"role": "assistant", "content": m.split(': ')[0]})
+            elif m.split(': ')[1] != user_message:
+                parsed_list.append({"role": "user", "content": m})
+
         parsed_list.append({"role": "user", "content": user_message})
 
         return parsed_list
@@ -927,8 +936,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         app.append_to_log((author + " " + message))
 
     def on_pubmsg(self, c, e):
-        # If a chat message starts with an exclamation point, try to run it as a command
         message = e.arguments[0]
+
         author = ''
         for tag in e.tags:
             if tag['key'] == 'display-name':
@@ -936,7 +945,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 break
         print(author + ": " + message)
         app.append_to_log(author + ": " + message)
+        self.message_queue.append(author + ": " + message)
 
+        # If a chat message starts with an exclamation point, try to run it as a command
         if e.arguments[0][:1] == '!':
             cmd = e.arguments[0].split(' ')[0][1:]
             print('Received command: ' + cmd)
@@ -968,6 +979,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 retry = 0
                 while retry < 3:
                     message_array = self.parse_string(self.input_text, author, message)
+
                     try:
                         response = openai.ChatCompletion.create(model=app.openai_api_model.get(),
                                                                 messages=message_array,
@@ -1023,6 +1035,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 response.choices[0].message.content = response.choices[0].message.content[:-1]
                             c.privmsg(self.channel, response.choices[0].message.content[:500])
                             app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
+                            self.message_queue.append(self.username + ': ' + response.choices[0].message.content[:500])
                             break
                         else:
                             print(response)
