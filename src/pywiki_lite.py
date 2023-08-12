@@ -39,7 +39,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def get_version():
-    return "1.40"  # Version Number
+    return "1.41"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -209,6 +209,10 @@ class TwitchBotGUI(tk.Tk):
         self.frequency_slider = tk.Scale(self, from_=0, to=100, orient=tk.HORIZONTAL)
         self.frequency_slider.grid(row=6, column=0, columnspan=2, padx=(10,60), pady=0, sticky="ew")
 
+
+        self.frequency_slider.bind("<Enter>", self.on_frequency_slider_enter)
+        self.frequency_slider.bind("<Leave>", self.on_frequency_slider_leave)
+
         # Start/Stop Bot Button
         self.bot_toggle_button = tk.Button(self, text="Start Bot", command=self.toggle_bot)
         self.bot_toggle_button.grid(row=0, column=1, columnspan=1, sticky="e", pady=10, padx=10)
@@ -232,6 +236,21 @@ class TwitchBotGUI(tk.Tk):
         self.user_list.grid(row=2, column=5, columnspan=3, rowspan=6, pady=0, sticky="ne")
         self.user_list.bind('<FocusOut>', lambda e: self.user_list.selection_clear(0, tk.END))
         self.user_list.bind('<Double-Button-1>', self.show_popup)
+
+
+    def on_frequency_slider_enter(self, event):
+        self.frequency_slider.bind("<MouseWheel>", self.on_frequency_slider_scroll)
+
+    def on_frequency_slider_leave(self, event):
+        self.frequency_slider.unbind("<MouseWheel>")
+
+    def on_frequency_slider_scroll(self, event):
+        current_value = self.frequency_slider.get()
+        if event.delta > 0:
+            new_value = min(current_value + 1, self.frequency_slider['to'])
+        else:
+            new_value = max(current_value - 1, self.frequency_slider['from'])
+        self.frequency_slider.set(new_value)
 
     def show_popup(self, event):
         selected_index = self.user_list.curselection()
