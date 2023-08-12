@@ -25,6 +25,7 @@ import tkinter as tk
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import webbrowser
+import websocket
 
 
 def resource_path(relative_path):
@@ -37,7 +38,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def get_version():
-    return "1.38"  # Version Number
+    return "1.39"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -301,7 +302,7 @@ class TwitchBotGUI(tk.Tk):
             'client_id': self.client_id.get(),
             'redirect_uri': 'http://localhost:3000',
             'response_type': 'code',
-            'scope': 'chat:read+chat:edit+channel:moderate+whispers:read+whispers:edit+channel_editor+user:read:follows+moderator:read:followers',
+            'scope': 'chat:read+chat:edit+channel:moderate+whispers:read+whispers:edit+channel_editor+user:read:follows+moderator:read:followers+channel:read:redemptions',
             'force_verify': 'true',
         }
         auth_url = 'https://id.twitch.tv/oauth2/authorize?' + '&'.join([f'{k}={v}' for k, v in auth_params.items()])
@@ -575,6 +576,38 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         app.append_to_log('Connecting to ' + server + ' on port ' + str(port) + '...')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:' + token)], username, username)
 
+    '''
+    def receive_twitch_events(self):
+        twitch_uri = "wss://eventsub.wss.twitch.tv/ws"
+
+        def on_message(ws, message):
+            data = json.loads(message)
+            print(data)
+
+            if data['metadata']['message_type'] == "PING":
+                # Respond with a pong
+                ws.send(json.dumps({"type": "PONG"}))
+                print('PONG')
+            elif data['metadata']['message_type'] == "session_welcome":
+                session_id = data['payload']['session']['id']
+                headers = {
+                    'Authorization': 'Bearer ' + app.bot_token.get(),
+                    'Client-Id': app.client_id.get(),
+                    'Content-Type': 'application/json',
+                }
+                auth_params = {
+                    'type': 'channel.channel_points_custom_reward_redemption.add',
+                    'version': '1',
+                    'condition': {"broadcaster_user_id": self.channel_id},
+                    'transport': {"method": "websocket", "session_id": session_id},
+                }
+                response = requests.post('https://api.twitch.tv/helix/eventsub/subscriptions', json=auth_params, headers=headers)
+                print(response.json())
+
+        ws = websocket.WebSocketApp(twitch_uri, on_message=on_message)
+        ws.run_forever()
+        '''
+
     def verify(self):
         url = 'https://id.twitch.tv/oauth2/validate'
         headers = {'Authorization': 'OAuth ' + app.bot_token.get()}
@@ -794,6 +827,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c.join(self.channel)
 
         self.connection.users()
+
+        '''
+        thread = threading.Thread(target=self.receive_twitch_events)
+        thread.start()
+        thread.join()
+        '''
 
     def get_launch(self, when, **kwargs):
         if when == 'next':
