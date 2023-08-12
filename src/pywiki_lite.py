@@ -1030,7 +1030,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 response.choices[0].message.content = response.choices[0].message.content[1:]
                             if response.choices[0].message.content.lower().startswith(self.username.lower()):
                                 response.choices[0].message.content = response.choices[0].message.content[
-                                                                      len(self.username):]
+                                                                      len(self.username + ': '):]
                             while len(('PRIVMSG' + self.channel + " " + response.choices[0].message.content + '\r\n').encode()) > 488:
                                 response.choices[0].message.content = response.choices[0].message.content[:-1]
                             c.privmsg(self.channel, response.choices[0].message.content[:500])
