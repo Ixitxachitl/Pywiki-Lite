@@ -17,6 +17,7 @@ import argparse
 
 import openai
 from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 
 from tkinter import messagebox, ttk, font, IntVar
 import tkinter.scrolledtext as tkscrolled
@@ -35,9 +36,8 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-
 def get_version():
-    return "1.37"  # Version Number
+    return "1.38"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -258,7 +258,21 @@ class TwitchBotGUI(tk.Tk):
             try:
                 created_at = response.json()['data'][0]['created_at']
                 followed_at = self.bot.get_followage(selected_item)
-                messagebox.showinfo(selected_item, 'Created on: ' + created_at + '\nFollowed on: ' + followed_at)
+
+                try:
+                    con_followed_at = datetime.strptime(followed_at, '%Y-%m-%dT%H:%M:%SZ')
+                    follow_time = relativedelta(datetime.utcnow(), con_followed_at)
+
+                    time_units = [('year', follow_time.years), ('month', follow_time.months), ('day', follow_time.days),
+                                  ('hour', follow_time.hours)]
+                    time_strings = [f"{value} {unit}" if value == 1 else f"{value} {unit}s" for unit, value in time_units if
+                                    value > 0]
+                    time_string = ', '.join(time_strings)
+                except ValueError:
+                    time_string = ''
+
+                messagebox.showinfo(selected_item, 'Created on: ' + created_at + '\nFollowed on: ' + followed_at +
+                                    '\n' + time_string)
             except KeyError:
                 messagebox.showerror("Error", "Error parsing response data")
             except IndexError:
@@ -723,7 +737,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         except KeyError:
             return "Error parsing response data"
         except IndexError:
-            return "Not Following or Missing Privileges"
+            return "Not Following"
 
     def get_users(self, **kwargs):
         self.connection.users()
