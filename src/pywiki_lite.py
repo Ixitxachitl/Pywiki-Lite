@@ -39,7 +39,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def get_version():
-    return "1.41"  # Version Number
+    return "1.42"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -921,12 +921,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         for m in self.message_queue:
             if m.split(': ')[0] == self.username.lower():
-                parsed_list.append({"role": "assistant", "content": m.split(': ')[0]})
+                parsed_list.append({"role": "assistant", "content": m.split(': ')[1]})
             elif m.split(': ')[1] != user_message:
-                parsed_list.append({"role": "user", "content": m})
+                parsed_list.append({"role": "user", "content": m.split(': ')[1]})
 
         parsed_list.append({"role": "user", "content": user_message})
-
+        print(parsed_list)
         return parsed_list
 
     def on_disconnect(self, c, e):
