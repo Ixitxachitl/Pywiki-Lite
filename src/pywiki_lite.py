@@ -39,7 +39,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def get_version():
-    return "1.43"  # Version Number
+    return "1.44"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -526,6 +526,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.token = token
         self.channel = '#' + channel
 
+        self.client_credentials = requests.post('https://id.twitch.tv/oauth2/token?client_id='
+                                                + self.client_id
+                                                + '&client_secret='
+                                                + self.client_secret
+                                                + '&grant_type=client_credentials'
+                                                + '').json()
+
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
 
@@ -584,6 +591,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         "streamer": {
                             "type": "string",
                             "description": "the name of the streamer to look up"
+                        },
+                    },
+                },
+            },
+            {
+                "name": "get_game_info",
+                "description": "Gets information about a game",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "game": {
+                            "type": "string",
+                            "description": "the name of the game to look up"
                         },
                     },
                 },
@@ -709,6 +729,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         except IndexError:
             return "Missing response data"
 
+    def get_game_info(self, game, **kwargs):
+        print(game)
+        url = 'https://api.igdb.com/v4/games'
+        headers = {
+            'Authorization': 'Bearer ' + self.client_credentials['access_token'],
+            'Client-Id': app.client_id.get(),
+            'Content-Type': 'application/json',
+        }
+        data = 'fields *; where name ~ "' + game + '";'
+        response = requests.post(url, headers=headers, data=data)
+        game_info = json.dumps(response.json())
+        print(game_info)
+        return game_info
+
     def get_emotes(self, **kwargs):
         # Get list of global emotes
         url = 'https://api.twitch.tv/helix/chat/emotes/global'
@@ -803,10 +837,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_namreply(self, c, e):
         self.users = e.arguments[2].split()
         for user in self.users:
-            if user == self.channel[1:].lower():
-                self.users.remove(self.channel[1:].lower())
-            elif user == self.username.lower():
-                self.users.remove(self.username.lower())
+            if user.lower() == self.channel[1:].lower():
+                self.users.remove(user)
+            elif user.lower() == self.username.lower():
+                self.users.remove(user)
 
         for user in self.users:
             app.user_list.insert(tk.END, user)
@@ -926,7 +960,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 parsed_list.append({"role": "user", "content": m.split(': ')[1]})
 
         parsed_list.append({"role": "user", "content": user_message})
-        print(parsed_list)
         return parsed_list
 
     def on_disconnect(self, c, e):
@@ -1017,6 +1050,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 "get_launch": self.get_launch,
                                 "get_users": self.get_users,
                                 "get_stream": self.get_stream,
+                                "get_game_info": self.get_game_info,
                             }  # only one function in this example, but you can have multiple
                             function_name = response_message["function_call"]["name"]
                             function_to_call = available_functions[function_name]
@@ -1025,6 +1059,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 author=function_args.get("user"),
                                 when=function_args.get("when"),
                                 streamer=function_args.get("streamer"),
+                                game=function_args.get("game"),
                             )
 
                             # Step 4: send the info on the function call and function response to GPT
