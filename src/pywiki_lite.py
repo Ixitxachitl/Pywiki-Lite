@@ -39,7 +39,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def get_version():
-    return "1.42"  # Version Number
+    return "1.43"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -930,6 +930,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         return parsed_list
 
     def on_disconnect(self, c, e):
+        self.message_queue.clear()
         print('Disconnected')
         app.append_to_log('Disconnected')
 
