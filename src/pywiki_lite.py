@@ -39,7 +39,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def get_version():
-    return "1.44"  # Version Number
+    return "1.45"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -737,7 +737,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             'Client-Id': app.client_id.get(),
             'Content-Type': 'application/json',
         }
-        data = 'fields *; where name ~ "' + game + '";'
+        data = 'fields *; where name ~ "' + game or self.get_game(self.channel[1:]) + '";'
         response = requests.post(url, headers=headers, data=data)
         game_info = json.dumps(response.json())
         print(game_info)
@@ -774,6 +774,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return "Missing response data"
 
     def get_stream(self, streamer, **kwargs):
+        if streamer == None:
+            streamer = self.channel[1:]
         url = 'https://api.twitch.tv/helix/search/channels?query=' + streamer + '&first=1'
         headers = {
             'Authorization': 'Bearer ' + app.bot_token.get(),
@@ -793,6 +795,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # Now you can safely access the data from the response
         try:
+            print(response.json())
             stream = json.dumps(response.json()['data'][0])
             return stream
         except KeyError:
