@@ -72,7 +72,7 @@ class TwitchBotGUI(tk.Tk):
 
         self.mute = False
 
-        self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo', 'ggml-mpt']
+        self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo', 'mpt-7b-chat']
 
         self.create_widgets()
 
@@ -961,6 +961,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         for placeholder, replacement in replacements.items():
             input_string = input_string.replace(placeholder, replacement)
 
+        if app.openai_api_model.get() == 'mpt-7b-chat':
+            return input_string
+
         sentences = input_string.split('. ')
         parsed_list = [{"role": "system", "content": sentence} for sentence in sentences]
 
@@ -1041,14 +1044,18 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     "@" + self.username.lower() in message.lower():
                 self.input_text = app.input_text.get('1.0', 'end')
 
-                if app.openai_api_model.get() == 'ggml-mpt':
+                if app.openai_api_model.get() == 'mpt-7b-chat':
 
+                    '''                 
                     if message.lower().startswith('@' + self.username):
                         message = message[-len('@' + self.username):]
                     elif message.lower().startswith(self.username):
                         message = message[-len(self.username):]
+                    '''
 
-                    response = self.model4a.generate(message, max_tokens=50, temp=1)
+                    with self.model4a.chat_session(prompt_template=author + ': {0}\n' + self.username + ': ',
+                                                   system_prompt=self.parse_string(self.input_text, author, message)):
+                        response = self.model4a.generate(message, max_tokens=50, temp=0.7)
 
                     response = response.strip().replace('\r', ' ').replace('\n', ' ')
                     while response.startswith('.') or response.startswith('/'):
