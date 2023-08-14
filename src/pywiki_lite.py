@@ -28,6 +28,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import webbrowser
 # import websocket
 import gpt4all
+from pathlib import Path
 
 
 def resource_path(relative_path):
@@ -75,8 +76,9 @@ class TwitchBotGUI(tk.Tk):
         self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo']
         if os.path.exists('ggml-mpt-7b-chat.bin'):
             self.openai_models.append('mpt-7b-chat')
+            print(Path.cwd())
             self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
-                                           model_path=os.path.abspath('.'),
+                                           model_path=str(Path.cwd()),
                                            allow_download=False)
 
         self.create_widgets()
