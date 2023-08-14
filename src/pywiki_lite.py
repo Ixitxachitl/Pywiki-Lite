@@ -1049,12 +1049,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     try:
                         with app.model4a.chat_session(prompt_template=author + ': {0}\n' + self.username + ': ',
                                                       system_prompt=self.parse_string(self.input_text, author, message).strip()):
+                            '''
                             for item in self.message_queue:
                                 if item.split(': ')[1] != message:
                                     if item.split(': ')[0] == self.username:
                                         app.model4a.current_chat_session.append({'role': 'assistant', 'content': item.split(': ')[1]})
                                     else:
                                         app.model4a.current_chat_session.append({'role': 'user', 'content': item.split(': ')[1]})
+                            '''
                             response = app.model4a.generate(message, max_tokens=50, temp=0.7)
 
                         response = response.strip().replace('\r', ' ').replace('\n', ' ')
