@@ -961,7 +961,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         for placeholder, replacement in replacements.items():
             input_string = input_string.replace(placeholder, replacement)
 
-        if app.openai_api_model.get() == 'mpt-7b-chat':
+        if app.openai_api_model.get() == 'gpt4all-falcon-q4':
             return input_string
 
         sentences = input_string.split('. ')
@@ -1045,22 +1045,28 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 self.input_text = app.input_text.get('1.0', 'end')
 
                 if app.openai_api_model.get() == 'gpt4all-falcon-q4':
+                    try:
+                        with self.model4a.chat_session(prompt_template=author + ': {0}\n' + self.username + ': ',
+                                                       system_prompt=self.parse_string(self.input_text, author, message).strip()):
+                            response = self.model4a.generate(message, max_tokens=50, temp=0.7)
 
-                    with self.model4a.chat_session(prompt_template=author + ': {0}\n' + self.username + ': ',
-                                                   system_prompt=self.parse_string(self.input_text, author, message)):
-                        response = self.model4a.generate(message, max_tokens=50, temp=0.7)
+                        response = response.strip().replace('\r', ' ').replace('\n', ' ')
+                        while response.startswith('.') or response.startswith('/'):
+                            response = response[1:]
+                        if response.lower().startswith(self.username.lower()):
+                            response = response[len(self.username + ': '):]
+                        while len(('PRIVMSG' + self.channel + " " + response + '\r\n').encode()) > 488:
+                            response = response[:-1]
 
-                    response = response.strip().replace('\r', ' ').replace('\n', ' ')
-                    while response.startswith('.') or response.startswith('/'):
-                        response = response[1:]
-                    if response.lower().startswith(self.username.lower()):
-                        response = response[len(self.username + ': '):]
-                    while len(('PRIVMSG' + self.channel + " " + response + '\r\n').encode()) > 488:
-                        response = response[:-1]
+                        c.privmsg(self.channel, response[:500])
+                        app.append_to_log(self.username + ': ' + response[:500])
+                        self.message_queue.append(self.username + ': ' + response[:500])
 
-                    c.privmsg(self.channel, response[:500])
-                    app.append_to_log(self.username + ': ' + response[:500])
-                    self.message_queue.append(self.username + ': ' + response[:500])
+                    except Exception as e:
+                        print(str(e))
+                        print(traceback.format_exc())
+                        app.append_to_log(str(e))
+                        app.append_to_log(traceback.format_exc())
 
                 else:
                     retry = 0
