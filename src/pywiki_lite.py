@@ -41,7 +41,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.49"  # Version Number
+    return "1.50"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -75,9 +75,6 @@ class TwitchBotGUI(tk.Tk):
         self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo']
         if os.path.exists('ggml-mpt-7b-chat.bin'):
             self.openai_models.append('mpt-7b-chat')
-            self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
-                                           model_path=os.path.abspath('.'),
-                                           allow_download=True)
 
         self.create_widgets()
 
@@ -1049,9 +1046,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
                 if app.openai_api_model.get() == 'mpt-7b-chat':
                     try:
-                        with app.model4a.chat_session():
-                            app.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
-                            response = app.model4a.generate(message, max_tokens=500, temp=0.7).encode('ascii', 'ignore').decode('ascii')
+                        self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
+                                                       model_path=os.path.abspath('.'),
+                                                       allow_download=False)
+                        with self.model4a.chat_session():
+                            self.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
+                            response = self.model4a.generate(message, max_tokens=500, temp=0.7).encode('ascii', 'ignore').decode('ascii')
 
                         response = response.strip().replace('\r', ' ').replace('\n', ' ')
                         while response.startswith('.') or response.startswith('/'):
