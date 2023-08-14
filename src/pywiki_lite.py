@@ -26,7 +26,8 @@ import tkinter as tk
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import webbrowser
-import websocket
+# import websocket
+import gpt4all
 
 
 def resource_path(relative_path):
@@ -38,8 +39,9 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+
 def get_version():
-    return "1.45"  # Version Number
+    return "1.46"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -71,6 +73,11 @@ class TwitchBotGUI(tk.Tk):
         self.mute = False
 
         self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo']
+        if os.path.exists('ggml-mpt-7b-chat.bin'):
+            self.openai_models.append('mpt-7b-chat')
+            self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
+                                           model_path='.',
+                                           allow_download=False)
 
         self.create_widgets()
 
@@ -141,10 +148,10 @@ class TwitchBotGUI(tk.Tk):
                                                                                       pady=10, padx=10, sticky='w')
         tk.Label(self, text="Context", font=("Helvetica", 16)).grid(row=0, column=3, columnspan=1,
                                                                     pady=0, padx=(0, 10), sticky='w')
-        tk.Label(self, text="Users", font=("Helvetica", 16)).grid(row=0, column=5, columnspan=1, padx=(0, 10), sticky='w')
+        tk.Label(self, text="Users", font=("Helvetica", 16)).grid(row=0, column=5, columnspan=1, padx=(0, 10),
+                                                                  sticky='w')
         self.user_count = tk.Label(self, text="", font=("Helvetica 16 bold"))
         self.user_count.grid(row=0, column=6, columnspan=1, pady=10, padx=(0, 10), sticky='w')
-
 
         # Twitch Bot Username Entry
         tk.Label(self, text="Username:").grid(row=1, column=0, padx=(10, 5), sticky="e")
@@ -202,13 +209,13 @@ class TwitchBotGUI(tk.Tk):
         self.about_button = tk.Button(self, text="ℹ️", command=self.show_about_popup, borderwidth=0)
         self.about_button.grid(row=0, column=7, columnspan=2, sticky="e")
 
-        self.stay_mute_button = tk.Button(self, text="🔇", font=font.Font(size=14), justify='center', command=self.toggle_mute)
+        self.stay_mute_button = tk.Button(self, text="🔇", font=font.Font(size=14), justify='center',
+                                          command=self.toggle_mute)
         self.stay_mute_button.grid(row=6, column=0, columnspan=2, sticky="e", padx=(0, 10))
 
         # Create a slider widget
         self.frequency_slider = tk.Scale(self, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.frequency_slider.grid(row=6, column=0, columnspan=2, padx=(10,60), pady=0, sticky="ew")
-
+        self.frequency_slider.grid(row=6, column=0, columnspan=2, padx=(10, 60), pady=0, sticky="ew")
 
         self.frequency_slider.bind("<Enter>", self.on_frequency_slider_enter)
         self.frequency_slider.bind("<Leave>", self.on_frequency_slider_leave)
@@ -224,19 +231,20 @@ class TwitchBotGUI(tk.Tk):
         # Create a Text widget to display the input string
         self.input_text = tkscrolled.ScrolledText(self, wrap="word", height=22, width=40, undo=True,
                                                   autoseparators=True, maxundo=-1)
-        self.input_text.grid(row=1, column=3, columnspan=2, rowspan=7, padx=(0, 10), pady=(10,0), sticky="ne")
+        self.input_text.grid(row=1, column=3, columnspan=2, rowspan=7, padx=(0, 10), pady=(10, 0), sticky="ne")
 
         # Create a Listbox to display users
-        self.ignore_userlist_check = tk.Checkbutton(self, text="Ignore User List", variable=self.ignore_userlist, onvalue = 1,
-                      offvalue = 0).grid(row=1, column=5, columnspan=3, sticky='nw', pady=0)
+        self.ignore_userlist_check = tk.Checkbutton(self, text="Ignore User List", variable=self.ignore_userlist,
+                                                    onvalue=1,
+                                                    offvalue=0).grid(row=1, column=5, columnspan=3, sticky='nw', pady=0)
         self.user_list_scroll = tk.Scrollbar(self, orient="vertical")
         self.user_list_scroll.grid(row=2, column=8, columnspan=1, rowspan=6, pady=0, padx=(0, 10), sticky="ns")
-        self.user_list = tk.Listbox(self, height=21, selectmode='SINGLE', width=30, yscrollcommand=self.user_list_scroll.set)
+        self.user_list = tk.Listbox(self, height=21, selectmode='SINGLE', width=30,
+                                    yscrollcommand=self.user_list_scroll.set)
         self.user_list_scroll.config(command=self.user_list.yview)
         self.user_list.grid(row=2, column=5, columnspan=3, rowspan=6, pady=0, sticky="ne")
         self.user_list.bind('<FocusOut>', lambda e: self.user_list.selection_clear(0, tk.END))
         self.user_list.bind('<Double-Button-1>', self.show_popup)
-
 
     def on_frequency_slider_enter(self, event):
         self.frequency_slider.bind("<MouseWheel>", self.on_frequency_slider_scroll)
@@ -259,9 +267,9 @@ class TwitchBotGUI(tk.Tk):
             selected_item = self.user_list.get(item_index)
             url = 'https://api.twitch.tv/helix/users?login=' + selected_item
             headers = {
-                    'Authorization': 'Bearer ' + self.bot_token.get(),
-                    'Client-Id': self.client_id.get(),
-                    'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + self.bot_token.get(),
+                'Client-Id': self.client_id.get(),
+                'Content-Type': 'application/json',
             }
             while True:
                 response = requests.get(url, headers=headers)
@@ -286,7 +294,8 @@ class TwitchBotGUI(tk.Tk):
 
                     time_units = [('year', follow_time.years), ('month', follow_time.months), ('day', follow_time.days),
                                   ('hour', follow_time.hours)]
-                    time_strings = [f"{value} {unit}" if value == 1 else f"{value} {unit}s" for unit, value in time_units if
+                    time_strings = [f"{value} {unit}" if value == 1 else f"{value} {unit}s" for unit, value in
+                                    time_units if
                                     value > 0]
                     time_string = ', '.join(time_strings)
                 except ValueError:
@@ -376,7 +385,6 @@ class TwitchBotGUI(tk.Tk):
             self.frequency_slider.set(section.get('Frequency', ''))
 
         self.ignore_userlist.set(int(section.get('IgnoreUsers', '0')))
-
 
     def save_configuration(self):
         config = configparser.ConfigParser()
@@ -517,6 +525,7 @@ class CallbackHandler(BaseHTTPRequestHandler):
 
         # Now you can use the access_token to make authenticated API requests
         self.wfile.write(b'Authorization successful! You can close this window now.')
+
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, client_id, client_secret, token, channel, openai_api_key):
@@ -701,7 +710,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         except IndexError:
             return "Missing response data"
 
-    def get_game(self, channel,**kwargs):
+    def get_game(self, channel, **kwargs):
         # Get the current game
         url = 'https://api.twitch.tv/helix/channels?broadcaster_id=' + channel
         headers = {
@@ -718,7 +727,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 app.refresh_login()
             else:
                 # Handle other status codes if needed
-                return "Error fetching data: " + str(response.status_code)
+                return "Error fetching data: " + str(response.status_code) + " " + str(response.content)
 
         # Now you can safely access the data from the response
         try:
@@ -803,12 +812,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         except IndexError:
             return "Missing response data"
 
-
     def get_followage(self, user, **kwargs):
         headers = {'Authorization': 'Bearer ' + app.bot_token.get(),
                    'Client-ID': app.client_id.get(),
                    'Content-Type': 'application/json'}
-        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + self.get_channel_id(user) + '&broadcaster_id=' + self.channel_id
+        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + self.get_channel_id(
+            user) + '&broadcaster_id=' + self.channel_id
 
         while True:
             response = requests.get(url, headers=headers)
@@ -855,7 +864,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_join(self, c, e):
         user = e.source.split('!')[0].lower()
         if user not in str(app.user_list.get(0, tk.END)) and \
-                user != self.username.lower() and\
+                user != self.username.lower() and \
                 user != self.channel[1:].lower():
             self.users.append(user)
             app.user_list.insert(tk.END, user)
@@ -940,7 +949,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         replacements = {
             "<name>": self.username,
             "<channel>": self.channel[1:],
-            "<game>": self.get_game(self.channel[1:]),
+            "<game>": self.get_game(self.channel_id),
             "<author>": author,
             "<emotes>": ', '.join(map(str, self.emotes)),
             "<UTC>": str(datetime.now(timezone.utc)),
@@ -962,6 +971,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             elif m.split(': ')[1] != user_message:
                 parsed_list.append({"role": "user", "content": m.split(': ')[1]})
 
+        if app.openai_api_model.get() == 'mpt-7b-chat':
+            return parsed_list
         parsed_list.append({"role": "user", "content": user_message})
         return parsed_list
 
@@ -978,8 +989,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if len(e.arguments) > 1:
                 c.ctcp_reply(nick, "PING " + e.arguments[1])
         elif (
-            e.arguments[0] == "DCC"
-            and e.arguments[1].split(" ", 1)[0] == "CHAT"
+                e.arguments[0] == "DCC"
+                and e.arguments[1].split(" ", 1)[0] == "CHAT"
         ):
             self.on_dccchat(c, e)
         message = e.arguments[1]
@@ -1032,79 +1043,105 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if rand_chat <= float(app.frequency_slider.get()) / 100 or self.username.lower() in message.lower() or \
                     "@" + self.username.lower() in message.lower():
                 self.input_text = app.input_text.get('1.0', 'end')
-                retry = 0
-                while retry < 3:
-                    message_array = self.parse_string(self.input_text, author, message)
 
+                if app.openai_api_model.get() == 'mpt-7b-chat':
                     try:
-                        response = openai.ChatCompletion.create(model=app.openai_api_model.get(),
-                                                                messages=message_array,
-                                                                functions=self.functions
-                                                                )
+                        with app.model4a.chat_session():
+                            app.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
+                            response = app.model4a.generate(message, max_tokens=500, temp=0.7)
 
-                        response_message = response["choices"][0]["message"]
+                        response = response.strip().replace('\r', ' ').replace('\n', ' ')
+                        while response.startswith('.') or response.startswith('/'):
+                            response = response[1:]
+                        if response.lower().startswith(self.username.lower()):
+                            response = response[len(self.username + ': '):]
+                        while len(('PRIVMSG' + self.channel + " " + response + '\r\n').encode()) > 488:
+                            response = response[:-1]
 
-                        # Step 2: check if GPT wanted to call a function
-                        if response_message.get("function_call"):
-                            # Step 3: call the function
-                            # Note: the JSON response may not always be valid; be sure to handle errors
-                            available_functions = {
-                                "get_user_pronouns": self.get_pronouns,
-                                "get_launch": self.get_launch,
-                                "get_users": self.get_users,
-                                "get_stream": self.get_stream,
-                                "get_game_info": self.get_game_info,
-                            }  # only one function in this example, but you can have multiple
-                            function_name = response_message["function_call"]["name"]
-                            function_to_call = available_functions[function_name]
-                            function_args = json.loads(response_message["function_call"]["arguments"])
-                            function_response = function_to_call(
-                                author=function_args.get("user"),
-                                when=function_args.get("when"),
-                                streamer=function_args.get("streamer"),
-                                game=function_args.get("game"),
-                            )
-
-                            # Step 4: send the info on the function call and function response to GPT
-                            message_array.append(response_message)  # extend conversation with assistant's reply
-                            # noinspection PyTypeChecker
-                            message_array.append(
-                                {
-                                    "role": "function",
-                                    "name": function_name,
-                                    "content": function_response,
-                                }
-                            )  # extend conversation with function response
-                            response = openai.ChatCompletion.create(
-                                model=app.openai_api_model.get(),
-                                messages=message_array,
-                            )  # get a new response from GPT where it can see the function response
-
-                        if hasattr(response, 'choices'):
-                            response.choices[0].message.content = \
-                                response.choices[0].message.content.strip().replace('\r', ' ').replace('\n', ' ')
-                            while response.choices[0].message.content.startswith('.') or\
-                                    response.choices[0].message.content.startswith('/'):
-                                response.choices[0].message.content = response.choices[0].message.content[1:]
-                            if response.choices[0].message.content.lower().startswith(self.username.lower()):
-                                response.choices[0].message.content = response.choices[0].message.content[
-                                                                      len(self.username + ': '):]
-                            while len(('PRIVMSG' + self.channel + " " + response.choices[0].message.content + '\r\n').encode()) > 488:
-                                response.choices[0].message.content = response.choices[0].message.content[:-1]
-                            c.privmsg(self.channel, response.choices[0].message.content[:500])
-                            app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
-                            self.message_queue.append(self.username + ': ' + response.choices[0].message.content[:500])
-                            break
-                        else:
-                            print(response)
-                            app.append_to_log(response)
+                        c.privmsg(self.channel, response[:500])
+                        app.append_to_log(self.username + ': ' + response[:500])
+                        self.message_queue.append(self.username + ': ' + response[:500])
 
                     except Exception as e:
-                        retry += 1
                         print(str(e))
                         print(traceback.format_exc())
                         app.append_to_log(str(e))
                         app.append_to_log(traceback.format_exc())
+
+                else:
+                    retry = 0
+                    while retry < 3:
+                        message_array = self.parse_string(self.input_text, author, message)
+
+                        try:
+                            response = openai.ChatCompletion.create(model=app.openai_api_model.get(),
+                                                                    messages=message_array,
+                                                                    functions=self.functions
+                                                                    )
+
+                            response_message = response["choices"][0]["message"]
+
+                            # Step 2: check if GPT wanted to call a function
+                            if response_message.get("function_call"):
+                                # Step 3: call the function
+                                # Note: the JSON response may not always be valid; be sure to handle errors
+                                available_functions = {
+                                    "get_user_pronouns": self.get_pronouns,
+                                    "get_launch": self.get_launch,
+                                    "get_users": self.get_users,
+                                    "get_stream": self.get_stream,
+                                    "get_game_info": self.get_game_info,
+                                }  # only one function in this example, but you can have multiple
+                                function_name = response_message["function_call"]["name"]
+                                function_to_call = available_functions[function_name]
+                                function_args = json.loads(response_message["function_call"]["arguments"])
+                                function_response = function_to_call(
+                                    author=function_args.get("user"),
+                                    when=function_args.get("when"),
+                                    streamer=function_args.get("streamer"),
+                                    game=function_args.get("game"),
+                                )
+
+                                # Step 4: send the info on the function call and function response to GPT
+                                message_array.append(response_message)  # extend conversation with assistant's reply
+                                # noinspection PyTypeChecker
+                                message_array.append(
+                                    {
+                                        "role": "function",
+                                        "name": function_name,
+                                        "content": function_response,
+                                    }
+                                )  # extend conversation with function response
+                                response = openai.ChatCompletion.create(
+                                    model=app.openai_api_model.get(),
+                                    messages=message_array,
+                                )  # get a new response from GPT where it can see the function response
+
+                            if hasattr(response, 'choices'):
+                                response.choices[0].message.content = \
+                                    response.choices[0].message.content.strip().replace('\r', ' ').replace('\n', ' ')
+                                while response.choices[0].message.content.startswith('.') or \
+                                        response.choices[0].message.content.startswith('/'):
+                                    response.choices[0].message.content = response.choices[0].message.content[1:]
+                                if response.choices[0].message.content.lower().startswith(self.username.lower()):
+                                    response.choices[0].message.content = response.choices[0].message.content[
+                                                                          len(self.username + ': '):]
+                                while len(('PRIVMSG' + self.channel + " " + response.choices[0].message.content + '\r\n').encode()) > 488:
+                                    response.choices[0].message.content = response.choices[0].message.content[:-1]
+                                c.privmsg(self.channel, response.choices[0].message.content[:500])
+                                app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
+                                self.message_queue.append(self.username + ': ' + response.choices[0].message.content[:500])
+                                break
+                            else:
+                                print(response)
+                                app.append_to_log(response)
+
+                        except Exception as e:
+                            retry += 1
+                            print(str(e))
+                            print(traceback.format_exc())
+                            app.append_to_log(str(e))
+                            app.append_to_log(traceback.format_exc())
 
     def do_command(self, e, cmd):
         c = self.connection
