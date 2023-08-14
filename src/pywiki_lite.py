@@ -41,7 +41,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.47"  # Version Number
+    return "1.48"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -432,8 +432,11 @@ class TwitchBotGUI(tk.Tk):
             self.user_list.delete(0, tk.END)
             app.user_count.config(text="")
             if hasattr(self, "bot"):
-                self.bot.connection.quit()
-                self.bot.disconnect()
+                try:
+                    self.bot.connection.quit()
+                    self.bot.disconnect()
+                except Exception as e:
+                    print(e)
                 # self.bot.die()
                 # self.bot_thread.join()
                 self.terminate_thread(self.bot_thread)
@@ -1048,7 +1051,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     try:
                         with app.model4a.chat_session():
                             app.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
-                            response = app.model4a.generate(message, max_tokens=500, temp=0.7)
+                            response = app.model4a.generate(message, max_tokens=500, temp=0.7).encode('ascii', 'ignore').decode('ascii')
 
                         response = response.strip().replace('\r', ' ').replace('\n', ' ')
                         while response.startswith('.') or response.startswith('/'):
@@ -1060,6 +1063,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
                         c.privmsg(self.channel, response[:500])
                         app.append_to_log(self.username + ': ' + response[:500])
+                        print(self.username + ': ' + response[:500])
                         self.message_queue.append(self.username + ': ' + response[:500])
 
                     except Exception as e:
