@@ -22,6 +22,7 @@ Features:
 * GPT model (If you don't have access to gpt-4 please set it to one of the gpt-3-turbo options)
 * Will get a list of users in chat if requested without using the tag. (Excluding the bot and the streamer unless the ignore box is checked)
 * Double click user to see account creation date
+* Offline chat generation using gpt4all, place https://gpt4all.io/models/ggml-mpt-7b-chat.bin in the same directory as the script/app
 <br /><br />
 
 ![image](https://github.com/Ixitxachitl/Pywiki-Lite/assets/16951681/66bae59d-eab1-4342-a894-bc659ef05a52)
