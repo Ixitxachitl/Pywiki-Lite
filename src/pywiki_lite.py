@@ -727,7 +727,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 app.refresh_login()
             else:
                 # Handle other status codes if needed
-                return "Error fetching data: " + str(response.status_code)
+                return "Error fetching data: " + str(response.status_code) + " " + str(response.content)
 
         # Now you can safely access the data from the response
         try:
@@ -949,7 +949,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         replacements = {
             "<name>": self.username,
             "<channel>": self.channel[1:],
-            "<game>": self.get_game(self.channel[1:]),
+            "<game>": self.get_game(self.channel_id),
             "<author>": author,
             "<emotes>": ', '.join(map(str, self.emotes)),
             "<UTC>": str(datetime.now(timezone.utc)),
