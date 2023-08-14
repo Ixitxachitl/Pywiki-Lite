@@ -72,7 +72,9 @@ class TwitchBotGUI(tk.Tk):
 
         self.mute = False
 
-        self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo', 'mpt-7b-chat']
+        self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo']
+        if os.path.exists('ggml-mpt-7b-chat.bin'):
+            self.openai_models.append('mpt-7b-chat')
 
         self.create_widgets()
 
@@ -540,9 +542,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
 
-        self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
-                                       model_path='.',
-                                       allow_download=False)
+        if os.path.exists('ggml-mpt-7b-chat.bin'):
+            self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
+                                           model_path='.',
+                                           allow_download=False)
 
         self.pronoun_cache = {}
         self.users = []
@@ -1048,6 +1051,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     try:
                         with self.model4a.chat_session(prompt_template=author + ': {0}\n' + self.username + ': ',
                                                        system_prompt=self.parse_string(self.input_text, author, message).strip()):
+                            for item in self.message_queue:
+                                if item.split(': ')[1] != message:
+                                    self.model4a.current_chat_session.append({'role': 'user', 'content': item.split(': ')[1]})
                             response = self.model4a.generate(message, max_tokens=50, temp=0.7)
 
                         response = response.strip().replace('\r', ' ').replace('\n', ' ')
