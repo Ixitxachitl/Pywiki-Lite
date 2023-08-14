@@ -1048,42 +1048,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
                 if app.openai_api_model.get() == 'mpt-7b-chat':
                     try:
-                        # Create pipe and dup2() the write end of it on top of stdout, saving a copy
-                        # of the old stdout
-                        stdout_fileno = sys.stdout.fileno()
-                        stdout_save = os.dup(stdout_fileno)
-                        stdout_pipe = os.pipe()
-                        os.dup2(stdout_pipe[1], stdout_fileno)
-                        os.close(stdout_pipe[1])
-
-                        self.captured_stdout = ''
-
-                        def drain_pipe():
-                            while True:
-                                data = os.read(stdout_pipe[0], 1024)
-                                if not data:
-                                    break
-                                self.captured_stdout += data.decode("utf-8")
-
-                        t = threading.Thread(target=drain_pipe)
-                        t.start()
-
                         self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
                                                        model_path=os.path.abspath('.'),
                                                        allow_download=False)
-
-                        # Close the write end of the pipe to unblock the reader thread and trigger it
-                        # to exit
-                        os.close(stdout_fileno)
-                        t.join()
-
-                        # Clean up the pipe and restore the original stdout
-                        os.close(stdout_pipe[0])
-                        os.dup2(stdout_save, stdout_fileno)
-                        os.close(stdout_save)
-
-                        print(self.captured_stdout)
-                        app.append_to_log(self.captured_stdout)
 
                         with self.model4a.chat_session():
                             self.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
