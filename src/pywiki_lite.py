@@ -72,7 +72,7 @@ class TwitchBotGUI(tk.Tk):
 
         self.mute = False
 
-        self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo', 'gpt4all-falcon-q4']
+        self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo', 'mpt-7b-chat']
 
         self.create_widgets()
 
@@ -540,7 +540,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
 
-        self.model4a = gpt4all.GPT4All(model_name='ggml-model-gpt4all-falcon-q4_0.bin',
+        self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
                                        model_path='.',
                                        allow_download=False)
 
@@ -961,7 +961,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         for placeholder, replacement in replacements.items():
             input_string = input_string.replace(placeholder, replacement)
 
-        if app.openai_api_model.get() == 'gpt4all-falcon-q4':
+        if app.openai_api_model.get() == 'mpt-7b-chat':
             return input_string
 
         sentences = input_string.split('. ')
@@ -1044,7 +1044,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     "@" + self.username.lower() in message.lower():
                 self.input_text = app.input_text.get('1.0', 'end')
 
-                if app.openai_api_model.get() == 'gpt4all-falcon-q4':
+                if app.openai_api_model.get() == 'mpt-7b-chat':
                     try:
                         with self.model4a.chat_session(prompt_template=author + ': {0}\n' + self.username + ': ',
                                                        system_prompt=self.parse_string(self.input_text, author, message).strip()):
