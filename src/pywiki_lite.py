@@ -1048,7 +1048,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     try:
                         with app.model4a.chat_session():
                             app.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
-                            response = app.model4a.generate(message, max_tokens=100, temp=0.7)
+                            response = app.model4a.generate(message, max_tokens=500, temp=0.7)
 
                         response = response.strip().replace('\r', ' ').replace('\n', ' ')
                         while response.startswith('.') or response.startswith('/'):
