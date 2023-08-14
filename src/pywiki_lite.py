@@ -962,9 +962,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         for placeholder, replacement in replacements.items():
             input_string = input_string.replace(placeholder, replacement)
 
-        if app.openai_api_model.get() == 'mpt-7b-chat':
-            return input_string
-
         sentences = input_string.split('. ')
         parsed_list = [{"role": "system", "content": sentence} for sentence in sentences]
 
@@ -974,6 +971,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             elif m.split(': ')[1] != user_message:
                 parsed_list.append({"role": "user", "content": m.split(': ')[1]})
 
+        if app.openai_api_model.get() == 'mpt-7b-chat':
+            return parsed_list
         parsed_list.append({"role": "user", "content": user_message})
         return parsed_list
 
@@ -1047,16 +1046,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
                 if app.openai_api_model.get() == 'mpt-7b-chat':
                     try:
-                        with app.model4a.chat_session(prompt_template=author + ': {0}\n' + self.username + ': ',
-                                                      system_prompt=self.parse_string(self.input_text, author, message).strip()):
-                            '''
-                            for item in self.message_queue:
-                                if item.split(': ')[1] != message:
-                                    if item.split(': ')[0] == self.username:
-                                        app.model4a.current_chat_session.append({'role': 'assistant', 'content': item.split(': ')[1]})
-                                    else:
-                                        app.model4a.current_chat_session.append({'role': 'user', 'content': item.split(': ')[1]})
-                            '''
+                        with app.model4a.chat_session():
+                            app.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
                             response = app.model4a.generate(message, max_tokens=100, temp=0.7)
 
                         response = response.strip().replace('\r', ' ').replace('\n', ' ')
