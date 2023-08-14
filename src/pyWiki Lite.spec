@@ -8,7 +8,7 @@ a = Analysis(
     ['pywiki_lite.py'],
     pathex=[],
     binaries=[],
-    datas=[('icon.ico', '.')],
+    datas=[('icon.ico', '.'),('libllmodel.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'),('libwinpthread-1.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'),('libgcc_s_seh-1.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'),('libstdc++-6.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
