@@ -1,7 +1,5 @@
 #!/usr/bin/python
 import collections
-import contextlib
-import io
 import os
 import ctypes
 import json
@@ -43,7 +41,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.51"  # Version Number
+    return "1.52"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
