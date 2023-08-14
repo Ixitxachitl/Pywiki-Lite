@@ -41,7 +41,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.46"  # Version Number
+    return "1.47"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -76,7 +76,7 @@ class TwitchBotGUI(tk.Tk):
         if os.path.exists('ggml-mpt-7b-chat.bin'):
             self.openai_models.append('mpt-7b-chat')
             self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
-                                           model_path=os.path.curdir,
+                                           model_path=os.path.abspath('.'),
                                            allow_download=False)
 
         self.create_widgets()
