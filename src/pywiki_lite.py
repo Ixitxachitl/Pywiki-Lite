@@ -77,6 +77,8 @@ class TwitchBotGUI(tk.Tk):
         self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo']
         if os.path.exists('ggml-mpt-7b-chat.bin'):
             self.openai_models.append('mpt-7b-chat')
+        if os.path.exists('wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin'):
+            self.openai_models.append('WizardLM-13B')
 
         self.create_widgets()
 
@@ -1064,10 +1066,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     "@" + self.username.lower() in message.lower():
                 self.input_text = app.input_text.get('1.0', 'end')
 
-                if app.openai_api_model.get() == 'mpt-7b-chat':
+                if app.openai_api_model.get() == 'mpt-7b-chat' or app.openai_api_model.get() == 'WizardLM-13B':
                     try:
+                        if app.openai_api_model.get() == 'mpt-7b-chat':
+                            gmll_model = 'ggml-mpt-7b-chat.bin'
+                        else:
+                            gmll_model = 'wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin'
+
                         with io.StringIO() as buffer, redirect_stdout(buffer):
-                            self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
+                            self.model4a = gpt4all.GPT4All(model_name=gmll_model,
                                                            model_path=os.path.abspath('.'),
                                                            allow_download=False)
                             output = buffer.getvalue().strip()

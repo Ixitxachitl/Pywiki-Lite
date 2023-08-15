@@ -8,7 +8,7 @@ a = Analysis(
     ['pywiki_lite.py'],
     pathex=[],
     binaries=[],
-    datas=[('icon.ico', '.'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libllmodel.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libwinpthread-1.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libgcc_s_seh-1.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libstdc++-6.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libmpt-default.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build')],
+    datas=[('icon.ico', '.'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libllmodel.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libwinpthread-1.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libgcc_s_seh-1.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libstdc++-6.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libmpt-default.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build'), ('gpt4all/llmodel_DO_NOT_MODIFY/build/libllamamodel-mainline-default.dll', 'gpt4all/llmodel_DO_NOT_MODIFY/build')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
