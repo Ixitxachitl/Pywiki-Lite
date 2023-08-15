@@ -621,6 +621,23 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     },
                 },
             },
+            {
+                "name": "send_message_delayed",
+                "description": "sends a message after a number of seconds",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "the message to send"
+                        },
+                        "delay_seconds": {
+                            "type": "string",
+                            "description": "the number of seconds to delay"
+                        },
+                    },
+                },
+            },
         ]
 
         # Create IRC bot connection
@@ -998,6 +1015,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         parsed_list.append({"role": "user", "content": user_message})
         return parsed_list
 
+    def send_message_delayed(self, message, delay_seconds, **kwargs):
+        print('Called send_message_delayed ' + message + ' in ' + delay_seconds + ' seconds')
+        app.append_to_log('Called send_message_delayed ' + message + ' in ' + delay_seconds + ' seconds')
+        def delayed_print():
+            time.sleep(int(delay_seconds))
+            self.connection.privmsg(self.channel, message)
+            app.append_to_log(self.username + ': ' + message)
+            print(self.username + ': ' + message)
+            self.message_queue.append(self.username + ': ' + message)
+
+        thread = threading.Thread(target=delayed_print)
+        thread.start()
+
+        return 'Timer Set'
+
     def on_disconnect(self, c, e):
         self.message_queue.clear()
         print('Disconnected')
@@ -1127,6 +1159,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                     "get_users": self.get_users,
                                     "get_stream": self.get_stream,
                                     "get_game_info": self.get_game_info,
+                                    "send_message_delayed": self.send_message_delayed,
                                 }  # only one function in this example, but you can have multiple
                                 function_name = response_message["function_call"]["name"]
                                 function_to_call = available_functions[function_name]
@@ -1136,6 +1169,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                     when=function_args.get("when"),
                                     streamer=function_args.get("streamer"),
                                     game=function_args.get("game"),
+                                    message=function_args.get("message"),
+                                    delay_seconds=function_args.get("delay_seconds")
                                 )
 
                                 # Step 4: send the info on the function call and function response to GPT
