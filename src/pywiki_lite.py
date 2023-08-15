@@ -43,7 +43,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.53"  # Version Number
+    return "1.54"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
