@@ -28,6 +28,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import webbrowser
 # import websocket
 import gpt4all
+import io
+from contextlib import redirect_stdout
 
 
 def resource_path(relative_path):
@@ -41,7 +43,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.52"  # Version Number
+    return "1.53"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -683,6 +685,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def get_channel_id(self, channel, **kwargs):
         # Get the channel id, we will need this for v5 API calls
+        print('Called get_channel_id for ' + channel)
+        app.append_to_log('Called get_channel_id for ' + channel)
         url = 'https://api.twitch.tv/helix/users?login=' + channel
         headers = {
             'Authorization': 'Bearer ' + app.bot_token.get(),
@@ -711,6 +715,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return "Missing response data"
 
     def get_game(self, channel, **kwargs):
+        print('Called get_game for ' + channel)
+        app.append_to_log('Called get_game for ' + channel)
         # Get the current game
         url = 'https://api.twitch.tv/helix/channels?broadcaster_id=' + channel
         headers = {
@@ -739,7 +745,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return "Missing response data"
 
     def get_game_info(self, game, **kwargs):
-        print(game)
+        print('Called get_game_info for ' + game)
+        app.append_to_log('Called get_game_info for ' + game)
         url = 'https://api.igdb.com/v4/games'
         headers = {
             'Authorization': 'Bearer ' + self.client_credentials['access_token'],
@@ -754,6 +761,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def get_emotes(self, **kwargs):
         # Get list of global emotes
+        print('Called get_emotes')
+        app.append_to_log('Called get_emotes')
         url = 'https://api.twitch.tv/helix/chat/emotes/global'
         headers = {
             'Authorization': 'Bearer ' + app.bot_token.get(),
@@ -783,6 +792,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return "Missing response data"
 
     def get_stream(self, streamer, **kwargs):
+        print('Called get_stream for ' + streamer)
+        app.append_to_log('Called get_stream for ' + streamer)
         if streamer == None:
             streamer = self.channel[1:]
         url = 'https://api.twitch.tv/helix/search/channels?query=' + streamer + '&first=1'
@@ -813,6 +824,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return "Missing response data"
 
     def get_followage(self, user, **kwargs):
+        print('Called get_followage for ' + user)
+        app.append_to_log('Called get_followage for ' + user)
+
         headers = {'Authorization': 'Bearer ' + app.bot_token.get(),
                    'Client-ID': app.client_id.get(),
                    'Content-Type': 'application/json'}
@@ -840,6 +854,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return "Not Following"
 
     def get_users(self, **kwargs):
+        print('Called get_users')
+        app.append_to_log('Called get_users')
         self.connection.users()
         if app.ignore_userlist.get() == 1:
             return 'unknown'
@@ -902,6 +918,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         '''
 
     def get_launch(self, when, **kwargs):
+        print('Called get_launch on ' + when)
+        app.append_to_log('Called get_launch on ' + when)
         if when == 'next':
             url = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?mode=list'
         else:
@@ -909,6 +927,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         return json.dumps(requests.get(url).json()["results"][:2])
 
     def get_pronouns(self, author, **kwargs):
+        print('Called get_pronouns for ' + author)
+        app.append_to_log('Called get_pronouns for ' + author)
         # Check if pronouns exist in the cache
         if author.lower() in self.pronoun_cache:
             return self.pronoun_cache[author.lower()]
@@ -1046,9 +1066,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
                 if app.openai_api_model.get() == 'mpt-7b-chat':
                     try:
-                        self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
-                                                       model_path=os.path.abspath('.'),
-                                                       allow_download=False)
+                        with io.StringIO() as buffer, redirect_stdout(buffer):
+                            self.model4a = gpt4all.GPT4All(model_name='ggml-mpt-7b-chat.bin',
+                                                           model_path=os.path.abspath('.'),
+                                                           allow_download=False)
+                            output = buffer.getvalue().strip()
+                        app.append_to_log(output)
+                        print(output)
 
                         with self.model4a.chat_session():
                             self.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
