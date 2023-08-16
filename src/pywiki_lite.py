@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.55"  # Version Number
+    return "1.56"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -1083,7 +1083,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.do_command(e, cmd)
             return
 
-        if app.mute:
+        rand_chat = random.random()
+        if app.mute and rand_chat > float(app.frequency_slider.get()) / 100:
             return
 
         elif message.lower() == (self.username + " yes").lower() or message.lower() == \
@@ -1099,7 +1100,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             c.privmsg(self.channel, "np")
             app.append_to_log(self.username + ': ' + "np")
         else:
-            rand_chat = random.random()
             # print(str(round(rand_chat*100,3)) + ':' + str(app.frequency_slider.get()))
             if rand_chat <= float(app.frequency_slider.get()) / 100 or self.username.lower() in message.lower() or \
                     "@" + self.username.lower() in message.lower():
