@@ -30,6 +30,7 @@ import webbrowser
 import gpt4all
 import io
 from contextlib import redirect_stdout
+from html import escape
 
 
 def resource_path(relative_path):
@@ -43,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.55b"  # Version Number
+    return "1.55"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -706,7 +707,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # Get the channel id, we will need this for v5 API calls
         print('Called get_channel_id for ' + channel)
         app.append_to_log('Called get_channel_id for ' + channel)
-        url = 'https://api.twitch.tv/helix/users?login=' + channel
+        url = 'https://api.twitch.tv/helix/users?login=' + escape(channel)
         headers = {
             'Authorization': 'Bearer ' + app.bot_token.get(),
             'Client-Id': app.client_id.get(),
@@ -737,7 +738,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print('Called get_game for ' + channel)
         app.append_to_log('Called get_game for ' + channel)
         # Get the current game
-        url = 'https://api.twitch.tv/helix/channels?broadcaster_id=' + channel
+        url = 'https://api.twitch.tv/helix/channels?broadcaster_id=' + escape(channel)
         headers = {
             'Authorization': 'Bearer ' + app.bot_token.get(),
             'Client-Id': app.client_id.get(),
@@ -772,7 +773,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             'Client-Id': app.client_id.get(),
             'Content-Type': 'application/json',
         }
-        data = 'fields *; where name ~ "' + game or self.get_game(self.channel[1:]) + '";'
+        data = 'fields *; where name ~ "' + escape(game) + '";'
+        print(data)
         response = requests.post(url, headers=headers, data=data)
         game_info = json.dumps(response.json())
         print(game_info)
@@ -815,7 +817,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         app.append_to_log('Called get_stream for ' + streamer)
         if streamer == None:
             streamer = self.channel[1:]
-        url = 'https://api.twitch.tv/helix/search/channels?query=' + streamer + '&first=1'
+        url = 'https://api.twitch.tv/helix/search/channels?query=' + escape(streamer) + '&first=1'
         headers = {
             'Authorization': 'Bearer ' + app.bot_token.get(),
             'Client-Id': app.client_id.get(),
@@ -849,8 +851,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         headers = {'Authorization': 'Bearer ' + app.bot_token.get(),
                    'Client-ID': app.client_id.get(),
                    'Content-Type': 'application/json'}
-        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + self.get_channel_id(
-            user) + '&broadcaster_id=' + self.channel_id
+        url = 'https://api.twitch.tv/helix/channels/followers?user_id=' + escape(self.get_channel_id(
+            user)) + '&broadcaster_id=' + escape(self.channel_id)
 
         while True:
             response = requests.get(url, headers=headers)
@@ -952,7 +954,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if author.lower() in self.pronoun_cache:
             return self.pronoun_cache[author.lower()]
 
-        url = 'https://pronouns.alejo.io/api/users/' + author.lower()
+        url = 'https://pronouns.alejo.io/api/users/' + escape(author.lower())
         r = requests.get(url).json()
 
         pronoun_mapping = {
@@ -1018,12 +1020,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def send_message_delayed(self, message, delay_seconds, **kwargs):
         print('Called send_message_delayed ' + message + ' in ' + delay_seconds + ' seconds')
         app.append_to_log('Called send_message_delayed ' + message + ' in ' + delay_seconds + ' seconds')
+
         def delayed_print():
-            time.sleep(int(delay_seconds))
-            self.connection.privmsg(self.channel, message)
-            app.append_to_log(self.username + ': ' + message)
-            print(self.username + ': ' + message)
-            self.message_queue.append(self.username + ': ' + message)
+            seconds = int(delay_seconds)
+            while seconds > 0 and app.bot_running:
+                time.sleep(1)
+                seconds -= 1
+            if app.bot_running:
+                self.connection.privmsg(self.channel, message)
+                app.append_to_log(self.username + ': ' + message)
+                print(self.username + ': ' + message)
+                self.message_queue.append(self.username + ': ' + message)
 
         thread = threading.Thread(target=delayed_print)
         thread.start()
