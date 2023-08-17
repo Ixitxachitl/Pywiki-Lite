@@ -896,7 +896,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.users = e.arguments[2].split()
 
         for user in self.users:
-            app.user_list.insert(tk.END, user)
+            if user not in str(app.user_list.get(0, tk.END)):
+                app.user_list.insert(tk.END, user)
 
         app.user_count.config(text=app.user_list.size())
 
