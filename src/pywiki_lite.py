@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.57"  # Version Number
+    return "1.58"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -894,11 +894,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_namreply(self, c, e):
         self.users = e.arguments[2].split()
-        for user in self.users:
-            if user.lower() == self.channel[1:].lower():
-                self.users.remove(user)
-            elif user.lower() == self.username.lower():
-                self.users.remove(user)
 
         for user in self.users:
             app.user_list.insert(tk.END, user)
@@ -909,9 +904,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_join(self, c, e):
         user = e.source.split('!')[0].lower()
-        if user not in str(app.user_list.get(0, tk.END)) and \
-                user != self.username.lower() and \
-                user != self.channel[1:].lower():
+        if user not in str(app.user_list.get(0, tk.END)):
             self.users.append(user)
             app.user_list.insert(tk.END, user)
             app.user_count.config(text=app.user_list.size())
