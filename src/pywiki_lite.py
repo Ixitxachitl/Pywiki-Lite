@@ -269,7 +269,8 @@ class TwitchBotGUI(tk.Tk):
         if selected_index:
             item_index = int(selected_index[0])
             selected_item = self.user_list.get(item_index)
-            self.bot.generate_response(selected_item, '@ ' + selected_item)
+            thread = threading.Thread(target=lambda: self.bot.generate_response(selected_item, '@ ' + selected_item))
+            thread.start()
 
     def show_popup(self, event):
         selected_index = self.user_list.curselection()
