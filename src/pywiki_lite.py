@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.56"  # Version Number
+    return "1.57"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -75,7 +75,7 @@ class TwitchBotGUI(tk.Tk):
 
         self.mute = False
 
-        self.openai_models = ['gpt-4-0613', 'gpt-4', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo']
+        self.openai_models = ['gpt-4', 'gpt-3.5-turbo']
         if os.path.exists('ggml-mpt-7b-chat.bin'):
             self.openai_models.append('mpt-7b-chat')
         if os.path.exists('wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin'):
@@ -238,7 +238,8 @@ class TwitchBotGUI(tk.Tk):
         # Create a Listbox to display users
         self.ignore_userlist_check = tk.Checkbutton(self, text="Ignore User List", variable=self.ignore_userlist,
                                                     onvalue=1,
-                                                    offvalue=0).grid(row=1, column=5, columnspan=3, sticky='nw', pady=0)
+                                                    offvalue=0)
+        self.ignore_userlist_check.grid(row=1, column=5, columnspan=3, sticky='nw', pady=0)
         self.user_list_scroll = tk.Scrollbar(self, orient="vertical")
         self.user_list_scroll.grid(row=2, column=8, columnspan=1, rowspan=6, pady=0, padx=(0, 10), sticky="ns")
         self.user_list = tk.Listbox(self, height=21, selectmode='SINGLE', width=30,
@@ -247,6 +248,7 @@ class TwitchBotGUI(tk.Tk):
         self.user_list.grid(row=2, column=5, columnspan=3, rowspan=6, pady=0, sticky="ne")
         self.user_list.bind('<FocusOut>', lambda e: self.user_list.selection_clear(0, tk.END))
         self.user_list.bind('<Double-Button-1>', self.show_popup)
+        self.user_list.bind('<Button-3>', self.message_user)
 
     def on_frequency_slider_enter(self, event):
         self.frequency_slider.bind("<MouseWheel>", self.on_frequency_slider_scroll)
@@ -261,6 +263,13 @@ class TwitchBotGUI(tk.Tk):
         else:
             new_value = max(current_value - 1, self.frequency_slider['from'])
         self.frequency_slider.set(new_value)
+
+    def message_user(self, event):
+        selected_index = self.user_list.curselection()
+        if selected_index:
+            item_index = int(selected_index[0])
+            selected_item = self.user_list.get(item_index)
+            self.bot.generate_response(selected_item, '@ ' + selected_item)
 
     def show_popup(self, event):
         selected_index = self.user_list.curselection()
@@ -1076,11 +1085,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.message_queue.append(author + ": " + message)
 
         # If a chat message starts with an exclamation point, try to run it as a command
-        if e.arguments[0][:1] == '!':
-            cmd = e.arguments[0].split(' ')[0][1:]
-            print('Received command: ' + cmd)
-            app.append_to_log('Received command: ' + cmd)
-            self.do_command(e, cmd)
+        if e.arguments[0].startswith('!'):
+            cmd = e.arguments[0][1:].split()
+            if len(cmd) > 0:
+                print('Received command: ' + cmd[0])
+                app.append_to_log('Received command: ' + cmd[0])
+                self.do_command(e, cmd)
             return
 
         rand_chat = random.random()
@@ -1100,129 +1110,139 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             c.privmsg(self.channel, "np")
             app.append_to_log(self.username + ': ' + "np")
         else:
-            # print(str(round(rand_chat*100,3)) + ':' + str(app.frequency_slider.get()))
             if rand_chat <= float(app.frequency_slider.get()) / 100 or self.username.lower() in message.lower() or \
                     "@" + self.username.lower() in message.lower():
-                self.input_text = app.input_text.get('1.0', 'end')
+                self.generate_response(author, message)
 
-                if app.openai_api_model.get() == 'mpt-7b-chat' or app.openai_api_model.get() == 'WizardLM-13B':
-                    try:
-                        if app.openai_api_model.get() == 'mpt-7b-chat':
-                            gmll_model = 'ggml-mpt-7b-chat.bin'
-                        else:
-                            gmll_model = 'wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin'
+    def generate_response(self, author, message):
+        self.input_text = app.input_text.get('1.0', 'end')
 
-                        with io.StringIO() as buffer, redirect_stdout(buffer):
-                            self.model4a = gpt4all.GPT4All(model_name=gmll_model,
-                                                           model_path=os.path.abspath('.'),
-                                                           allow_download=False)
-                            output = buffer.getvalue().strip()
-                        app.append_to_log(output)
-                        print(output)
-
-                        with self.model4a.chat_session():
-                            self.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
-                            response = self.model4a.generate(message, max_tokens=500, temp=0.7).encode('ascii', 'ignore').decode('ascii')
-
-                        response = response.strip().replace('\r', ' ').replace('\n', ' ')
-                        while response.startswith('.') or response.startswith('/'):
-                            response = response[1:]
-                        if response.lower().startswith(self.username.lower()):
-                            response = response[len(self.username + ': '):]
-                        while len(('PRIVMSG' + self.channel + " " + response + '\r\n').encode()) > 488:
-                            response = response[:-1]
-
-                        c.privmsg(self.channel, response[:500])
-                        app.append_to_log(self.username + ': ' + response[:500])
-                        print(self.username + ': ' + response[:500])
-                        self.message_queue.append(self.username + ': ' + response[:500])
-
-                    except Exception as e:
-                        print(str(e))
-                        print(traceback.format_exc())
-                        app.append_to_log(str(e))
-                        app.append_to_log(traceback.format_exc())
-
+        if app.openai_api_model.get() == 'mpt-7b-chat' or app.openai_api_model.get() == 'WizardLM-13B':
+            try:
+                if app.openai_api_model.get() == 'mpt-7b-chat':
+                    gmll_model = 'ggml-mpt-7b-chat.bin'
                 else:
-                    retry = 0
-                    while retry < 3:
-                        message_array = self.parse_string(self.input_text, author, message)
+                    gmll_model = 'wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin'
 
-                        try:
-                            response = openai.ChatCompletion.create(model=app.openai_api_model.get(),
-                                                                    messages=message_array,
-                                                                    functions=self.functions
-                                                                    )
+                with io.StringIO() as buffer, redirect_stdout(buffer):
+                    self.model4a = gpt4all.GPT4All(model_name=gmll_model,
+                                                   model_path=os.path.abspath('.'),
+                                                   allow_download=False)
+                    output = buffer.getvalue().strip()
+                app.append_to_log(output)
+                print(output)
 
-                            response_message = response["choices"][0]["message"]
+                with self.model4a.chat_session():
+                    self.model4a.current_chat_session = self.parse_string(self.input_text, author, message)
+                    response = self.model4a.generate(message, max_tokens=500, temp=0.7).encode('ascii',
+                                                                                               'ignore').decode('ascii')
 
-                            # Step 2: check if GPT wanted to call a function
-                            if response_message.get("function_call"):
-                                # Step 3: call the function
-                                # Note: the JSON response may not always be valid; be sure to handle errors
-                                available_functions = {
-                                    "get_user_pronouns": self.get_pronouns,
-                                    "get_launch": self.get_launch,
-                                    "get_users": self.get_users,
-                                    "get_stream": self.get_stream,
-                                    "get_game_info": self.get_game_info,
-                                    "send_message_delayed": self.send_message_delayed,
-                                }  # only one function in this example, but you can have multiple
-                                function_name = response_message["function_call"]["name"]
-                                function_to_call = available_functions[function_name]
-                                function_args = json.loads(response_message["function_call"]["arguments"])
-                                function_response = function_to_call(
-                                    author=function_args.get("user"),
-                                    when=function_args.get("when"),
-                                    streamer=function_args.get("streamer"),
-                                    game=function_args.get("game"),
-                                    message=function_args.get("message"),
-                                    delay_seconds=function_args.get("delay_seconds")
-                                )
+                response = response.strip().replace('\r', ' ').replace('\n', ' ')
+                while response.startswith('.') or response.startswith('/'):
+                    response = response[1:]
+                if response.lower().startswith(self.username.lower()):
+                    response = response[len(self.username + ': '):]
+                while len(('PRIVMSG' + self.channel + " " + response + '\r\n').encode()) > 488:
+                    response = response[:-1]
 
-                                # Step 4: send the info on the function call and function response to GPT
-                                message_array.append(response_message)  # extend conversation with assistant's reply
-                                # noinspection PyTypeChecker
-                                message_array.append(
-                                    {
-                                        "role": "function",
-                                        "name": function_name,
-                                        "content": function_response,
-                                    }
-                                )  # extend conversation with function response
-                                response = openai.ChatCompletion.create(
-                                    model=app.openai_api_model.get(),
-                                    messages=message_array,
-                                )  # get a new response from GPT where it can see the function response
+                self.connection.privmsg(self.channel, response[:500])
+                app.append_to_log(self.username + ': ' + response[:500])
+                print(self.username + ': ' + response[:500])
+                self.message_queue.append(self.username + ': ' + response[:500])
 
-                            if hasattr(response, 'choices'):
-                                response.choices[0].message.content = \
-                                    response.choices[0].message.content.strip().replace('\r', ' ').replace('\n', ' ')
-                                while response.choices[0].message.content.startswith('.') or \
-                                        response.choices[0].message.content.startswith('/'):
-                                    response.choices[0].message.content = response.choices[0].message.content[1:]
-                                if response.choices[0].message.content.lower().startswith(self.username.lower()):
-                                    response.choices[0].message.content = response.choices[0].message.content[
-                                                                          len(self.username + ': '):]
-                                while len(('PRIVMSG' + self.channel + " " + response.choices[0].message.content + '\r\n').encode()) > 488:
-                                    response.choices[0].message.content = response.choices[0].message.content[:-1]
-                                c.privmsg(self.channel, response.choices[0].message.content[:500])
-                                app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
-                                self.message_queue.append(self.username + ': ' + response.choices[0].message.content[:500])
-                                break
-                            else:
-                                print(response)
-                                app.append_to_log(response)
+            except Exception as e:
+                print(str(e))
+                print(traceback.format_exc())
+                app.append_to_log(str(e))
+                app.append_to_log(traceback.format_exc())
 
-                        except Exception as e:
-                            retry += 1
-                            print(str(e))
-                            print(traceback.format_exc())
-                            app.append_to_log(str(e))
-                            app.append_to_log(traceback.format_exc())
+        else:
+            retry = 0
+            while retry < 3:
+                message_array = self.parse_string(self.input_text, author, message)
+
+                try:
+                    response = openai.ChatCompletion.create(model=app.openai_api_model.get(),
+                                                            messages=message_array,
+                                                            functions=self.functions
+                                                            )
+
+                    response_message = response["choices"][0]["message"]
+
+                    # Step 2: check if GPT wanted to call a function
+                    if response_message.get("function_call"):
+                        # Step 3: call the function
+                        # Note: the JSON response may not always be valid; be sure to handle errors
+                        available_functions = {
+                            "get_user_pronouns": self.get_pronouns,
+                            "get_launch": self.get_launch,
+                            "get_users": self.get_users,
+                            "get_stream": self.get_stream,
+                            "get_game_info": self.get_game_info,
+                            "send_message_delayed": self.send_message_delayed,
+                        }  # only one function in this example, but you can have multiple
+                        function_name = response_message["function_call"]["name"]
+                        function_to_call = available_functions[function_name]
+                        function_args = json.loads(response_message["function_call"]["arguments"])
+                        function_response = function_to_call(
+                            author=function_args.get("user"),
+                            when=function_args.get("when"),
+                            streamer=function_args.get("streamer"),
+                            game=function_args.get("game"),
+                            message=function_args.get("message"),
+                            delay_seconds=function_args.get("delay_seconds")
+                        )
+
+                        # Step 4: send the info on the function call and function response to GPT
+                        message_array.append(response_message)  # extend conversation with assistant's reply
+                        # noinspection PyTypeChecker
+                        message_array.append(
+                            {
+                                "role": "function",
+                                "name": function_name,
+                                "content": function_response,
+                            }
+                        )  # extend conversation with function response
+                        response = openai.ChatCompletion.create(
+                            model=app.openai_api_model.get(),
+                            messages=message_array,
+                        )  # get a new response from GPT where it can see the function response
+
+                    if hasattr(response, 'choices'):
+                        response.choices[0].message.content = \
+                            response.choices[0].message.content.strip().replace('\r', ' ').replace('\n', ' ')
+                        while response.choices[0].message.content.startswith('.') or \
+                                response.choices[0].message.content.startswith('/'):
+                            response.choices[0].message.content = response.choices[0].message.content[1:]
+                        if response.choices[0].message.content.lower().startswith(self.username.lower()):
+                            response.choices[0].message.content = response.choices[0].message.content[
+                                                                  len(self.username + ': '):]
+                        while len(('PRIVMSG' + self.channel + " " + response.choices[
+                            0].message.content + '\r\n').encode()) > 488:
+                            response.choices[0].message.content = response.choices[0].message.content[:-1]
+                        self.connection.privmsg(self.channel, response.choices[0].message.content[:500])
+                        app.append_to_log(self.username + ': ' + response.choices[0].message.content[:500])
+                        print(self.username + ': ' + response.choices[0].message.content[:500])
+                        self.message_queue.append(self.username + ': ' + response.choices[0].message.content[:500])
+                        break
+                    else:
+                        print(response)
+                        app.append_to_log(response)
+
+                except Exception as e:
+                    retry += 1
+                    print(str(e))
+                    print(traceback.format_exc())
+                    app.append_to_log(str(e))
+                    app.append_to_log(traceback.format_exc())
 
     def do_command(self, e, cmd):
         c = self.connection
+        if len(cmd) == 2:
+            if cmd[0] == self.username and cmd[1] == 'version':
+                c.privmsg(self.channel, get_version() + ' ' + app.openai_api_model.get())
+                app.append_to_log(self.username + ': ' + get_version() + ' ' + app.openai_api_model.get())
+                print(self.username + ': ' + get_version() + ' ' + app.openai_api_model.get())
 
 
 if __name__ == "__main__":
