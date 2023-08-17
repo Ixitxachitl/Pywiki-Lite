@@ -13,14 +13,14 @@ Tags for Context:
 * \<time> : Raw local date and time output (\<UTC> also works)
 * \<chatter_pronouns> : The pronouns of the chatter that sent the prompt
 * \<streamer_pronouns> : The pronouns of the streamer
-* \<users> : A CSV of the users in chat (Pulled from irc, may take time to update, large lists can use a lot of tokens, so you may not want to use this tag)
+* \<users> : A CSV of the users in chat (Pulled from irc, may take time to update, large lists can use a lot of tokens, so you may not want to use this tag. If ignore is checked the bot sees the list as unknown.)
 <br /><br />
 Features:
 * Pronouns from https://pronouns.alejo.io/
 * Previous and next rocket launch from https://thespacedevs.com/
-* Auto-reply frequency slider (% per message)
+* Auto-reply frequency slider (% per message, set to 0 to completely mute as the mute button only mutes responses to the bots name.)
 * GPT model (If you don't have access to gpt-4 please set it to one of the gpt-3-turbo options)
-* Will get a list of users in chat if requested without using the tag. (Excluding the bot and the streamer unless the ignore box is checked)
+* Will get a list of users in chat if requested without using the tag. (Unless the ignore box is checked)
 * Double click user to see account creation date
 * Offline chat generation using gpt4all, place https://gpt4all.io/models/ggml-mpt-7b-chat.bin or https://gpt4all.io/models/wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin in the same directory as the script/app
 <br /><br />
