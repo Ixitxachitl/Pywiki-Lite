@@ -1,10 +1,53 @@
-# Pywiki-Lite
-* Username: Login (Redirect URI is 'http://localhost:3000')
-* ClientID/Client Secret: https://dev.twitch.tv/
-* Channel: Whatever you want, only one.
-* OpenAI API Key: https://platform.openai.com/ 
-<br /><br />
-Tags for Context:
+# pyWiki Lite
+
+pyWiki Lite is a chatbot application that interfaces with OpenAI, GPT-4-All, and Twitch. This guide will walk you through the process of obtaining a Twitch Client ID and Client Secret, setting up a redirect URI, and acquiring an OpenAI API key for use with pyWiki Lite.
+
+## Twitch Client ID and Client Secret
+
+1. **Create a Twitch Developer Account:**
+   - If you don't have a Twitch developer account, sign up for one on the [Twitch Developer Portal](https://dev.twitch.tv/).
+
+2. **Create a New Application:**
+   - Log in to your Twitch Developer account.
+   - Go to the [Applications](https://dev.twitch.tv/console/apps) section.
+   - Click on the "Register Your Application" button.
+
+3. **Fill Out Application Details:**
+   - Provide a name for your application (e.g., "MyTwitchApp").
+   - Set the OAuth Redirect URLs to `http://localhost:3000/`.
+   - Choose an appropriate category for your application.
+   - Agree to the terms of service and click the "Create" button.
+
+4. **Obtain Client ID and Client Secret:**
+   - After creating the application, you'll receive a **Client ID** and a **Client Secret**. Keep these secure, as they are required for authentication.
+
+## OpenAI API Key
+
+1. **Sign Up for an OpenAI Account:**
+   - If you don't have an OpenAI account, sign up for one on the [OpenAI website](https://www.openai.com/).
+
+2. **Generate an API Key:**
+   - Log in to your OpenAI account.
+   - Navigate to the API section of your account.
+
+3. **Create a New API Key:**
+   - Create a new API key and provide a descriptive name for it.
+
+4. **Retrieve Your API Key:**
+   - Once the API key is generated, it will be displayed. This key is necessary for making API requests to OpenAI.
+
+Remember to keep your API keys secure and avoid sharing them publicly or hardcoding them directly into your code. Use best practices for managing sensitive information in your applications.
+
+## Login
+- Once you enter your **Client ID** and **Client Secret** you may click login to direct you to a browser login, log into the account that you want your bot to be.
+- OpenAI API Key is necessary to generate responses, it is possible to use gpt4all instead of OpenAI without entering a key as long as the necessary files are in the same directory. (see below)
+
+## Additional Resources
+
+- [Twitch Developer Documentation](https://dev.twitch.tv/docs)
+- [OpenAI API Documentation](https://platform.openai.com/docs)
+
+## Tags for Context:
 * \<name> : Same as Username
 * \<channel> : Same as Channel
 * \<game> : The current game from the twitch API
@@ -14,8 +57,8 @@ Tags for Context:
 * \<chatter_pronouns> : The pronouns of the chatter that sent the prompt
 * \<streamer_pronouns> : The pronouns of the streamer
 * \<users> : A CSV of the users in chat (Pulled from irc, may take time to update, large lists can use a lot of tokens, so you may not want to use this tag. If ignore is checked the bot sees the list as unknown.)
-<br /><br />
-Features:
+
+## Features:
 * Pronouns from https://pronouns.alejo.io/
 * Previous and next rocket launch from https://thespacedevs.com/
 * Auto-reply frequency slider (% per message, set to 0 to completely mute as the mute button only mutes responses to the bots name.)
