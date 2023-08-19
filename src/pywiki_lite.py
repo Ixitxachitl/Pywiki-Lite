@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.58"  # Version Number
+    return "1.59"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -894,7 +894,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return str(app.user_list.get(0, tk.END))
 
     def on_namreply(self, c, e):
-        self.users = e.arguments[2].split()
+        for key in self.channels[self.channel].users():
+            if key not in self.users:
+                self.users.append(key)
 
         for user in self.users:
             if user not in str(app.user_list.get(0, tk.END)):
@@ -905,7 +907,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print(', '.join(map(str, self.users)))
 
     def on_join(self, c, e):
-        user = e.source.split('!')[0].lower()
+        user = e.source.nick
         if user not in str(app.user_list.get(0, tk.END)):
             self.users.append(user)
             app.user_list.insert(tk.END, user)
@@ -913,7 +915,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(user + ' joined')
 
     def on_part(self, c, e):
-        user = e.source.split('!')[0].lower()
+        user = e.source.nick
         if user in str(self.users):
             self.users.remove(user)
             for index in range(app.user_list.size(), -1, -1):
@@ -1107,7 +1109,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         else:
             if rand_chat <= float(app.frequency_slider.get()) / 100 or self.username.lower() in message.lower() or \
                     "@" + self.username.lower() in message.lower():
-                self.generate_response(author, message)
+                thread = threading.Thread(target=lambda: self.generate_response(author, message))
+                thread.start()
 
     def generate_response(self, author, message):
         self.input_text = app.input_text.get('1.0', 'end')
