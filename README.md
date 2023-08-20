@@ -47,6 +47,14 @@ Remember to keep your API keys secure and avoid sharing them publicly or hardcod
 - [Twitch Developer Documentation](https://dev.twitch.tv/docs)
 - [OpenAI API Documentation](https://platform.openai.com/docs)
 
+## Usage
+
+- Say the name of the bot, and it will reply with an AI generated response.
+- Set the slider to a percentage chance that the bot will reply on its own at random.
+- Left click to select a chatter on the user list and right click to tell the bot to address them.
+- Double-click a user for some additional account information. (If the bot is not a moderator the follow age will say "Not Following")
+- Enter instructions into the context box to influence the bot's "personality," this works best in GPT-4, has some effect on GPT-3.5-Turbo, and little effect on the offline models.
+
 ## Tags for Context:
 * \<name> : Same as Username
 * \<channel> : Same as Channel
