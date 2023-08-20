@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.59"  # Version Number
+    return "1.60"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -570,20 +570,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.emotes = self.get_emotes()
 
         self.functions = [
-            {
-                "name": "get_user_pronouns",
-                "description": "Get the pronouns of a specified user",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "user": {
-                            "type": "string",
-                            "description": "The name of the person to look up pronouns for",
-                        },
-                    },
-                    "required": ["user"],
-                },
-            },
+            # {
+            #    "name": "get_user_pronouns",
+            #    "description": "Get the pronouns of a specified user",
+            #    "parameters": {
+            #        "type": "object",
+            #        "properties": {
+            #            "user": {
+            #                "type": "string",
+            #                "description": "The name of the person to look up pronouns for",
+            #            },
+            #        },
+            #        "required": ["user"],
+            #    },
+            # },
             {
                 "name": "get_launch",
                 "description": "Get the next or previous scheduled space launch",
@@ -595,6 +595,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             "enum": ["next", "previous"]
                         },
                     },
+                    "required": ["when"],
                 },
             },
             {
@@ -617,6 +618,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             "description": "the name of the streamer to look up"
                         },
                     },
+                    "required": ["streamer"],
                 },
             },
             {
@@ -630,6 +632,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             "description": "the name of the game to look up"
                         },
                     },
+                    "required": ["game"],
                 },
             },
             {
@@ -647,6 +650,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             "description": "the number of seconds to delay"
                         },
                     },
+                    "required": ["message", "delay_seconds"],
                 },
             },
         ]
@@ -1172,7 +1176,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         # Step 3: call the function
                         # Note: the JSON response may not always be valid; be sure to handle errors
                         available_functions = {
-                            "get_user_pronouns": self.get_pronouns,
+                            # "get_user_pronouns": self.get_pronouns,
                             "get_launch": self.get_launch,
                             "get_users": self.get_users,
                             "get_stream": self.get_stream,
@@ -1183,7 +1187,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         function_to_call = available_functions[function_name]
                         function_args = json.loads(response_message["function_call"]["arguments"])
                         function_response = function_to_call(
-                            author=function_args.get("user"),
+                            # author=function_args.get("user"),
                             when=function_args.get("when"),
                             streamer=function_args.get("streamer"),
                             game=function_args.get("game"),
