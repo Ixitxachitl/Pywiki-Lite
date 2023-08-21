@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.60"  # Version Number
+    return "1.61"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -107,7 +107,8 @@ class TwitchBotGUI(tk.Tk):
 
     def show_about_popup(self):
         about_text = "pyWiki Lite " + get_version() + "\n©2023 Ixitxachitl\nAnd ChatGPT"
-        messagebox.showinfo("About", about_text)
+        thread = threading.Thread(target=lambda: messagebox.showinfo("About", about_text))
+        thread.start()
 
     def append_to_log(self, message):
         self.log_queue.put(message)
@@ -313,8 +314,10 @@ class TwitchBotGUI(tk.Tk):
                 except ValueError:
                     time_string = ''
 
-                messagebox.showinfo(selected_item, 'Created on: ' + created_at + '\nFollowed on: ' + followed_at +
-                                    '\n' + time_string)
+                thread = threading.Thread(target=lambda: messagebox.showinfo(selected_item, 'Created on: ' + created_at
+                                                                             + '\nFollowed on: ' + followed_at + '\n' +
+                                                                             time_string))
+                thread.start()
             except KeyError:
                 messagebox.showerror("Error", "Error parsing response data")
             except IndexError:
