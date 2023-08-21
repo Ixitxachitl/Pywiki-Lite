@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.61"  # Version Number
+    return "1.62"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -565,7 +565,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         self.pronoun_cache = {}
         self.users = []
-        self.message_queue = collections.deque(maxlen=5)
+        self.message_queue = collections.deque(maxlen=10)
 
         self.verify()
         self.channel_id = self.get_channel_id(channel)
@@ -1023,9 +1023,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if m.split(': ')[0] == self.username.lower():
                 parsed_list.append({"role": "assistant", "content": m.split(': ')[1]})
             elif m.split(': ')[1] != user_message:
-                parsed_list.append({"role": "user", "content": m.split(': ')[1]})
+                parsed_list.append({"role": "system", "name": m.split(': ')[0], "content": m.split(': ')[1]})
 
-        if app.openai_api_model.get() == 'mpt-7b-chat':
+        if app.openai_api_model.get() == 'mpt-7b-chat' or app.openai_api_model.get() == 'WizardLM-13B':
             return parsed_list
         parsed_list.append({"role": "user", "content": user_message})
         return parsed_list
