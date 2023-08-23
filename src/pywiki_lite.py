@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.63"  # Version Number
+    return "1.64"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -1027,7 +1027,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         if app.openai_api_model.get() == 'mpt-7b-chat' or app.openai_api_model.get() == 'WizardLM-13B':
             return parsed_list
-        parsed_list.append({"role": "user", "name": m.split(': ')[0], "content": user_message})
+        parsed_list.append({"role": "user", "name": author, "content": user_message})
         return parsed_list
 
     def send_message_delayed(self, message, delay_seconds, **kwargs):
