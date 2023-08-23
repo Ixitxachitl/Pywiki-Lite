@@ -1170,7 +1170,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     response = openai.ChatCompletion.create(model=app.openai_api_model.get(),
                                                             messages=message_array,
                                                             functions=self.functions,
-                                                            user=app.channel
+                                                            user=self.channel[1:]
                                                             )
 
                     response_message = response["choices"][0]["message"]
