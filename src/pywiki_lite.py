@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.64"  # Version Number
+    return "1.65"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -270,7 +270,13 @@ class TwitchBotGUI(tk.Tk):
         if selected_index:
             item_index = int(selected_index[0])
             selected_item = self.user_list.get(item_index)
-            thread = threading.Thread(target=lambda: self.bot.generate_response(selected_item, '@ ' + selected_item))
+            if selected_item.lower() in self.bot.last_message.keys():
+                thread = threading.Thread(
+                    target=lambda: self.bot.generate_response(selected_item,
+                                                              self.bot.last_message[selected_item.lower()]))
+            else:
+                thread = threading.Thread(
+                    target=lambda: self.bot.generate_response(selected_item, '@ ' + selected_item))
             thread.start()
 
     def show_popup(self, event):
@@ -560,12 +566,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                                 + '&grant_type=client_credentials'
                                                 + '').json()
 
+        print(self.client_credentials)
         self.openai_api_key = openai_api_key
         openai.api_key = self.openai_api_key
 
         self.pronoun_cache = {}
         self.users = []
         self.message_queue = collections.deque(maxlen=10)
+        self.last_message = {}
 
         self.verify()
         self.channel_id = self.get_channel_id(channel)
@@ -793,6 +801,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         data = 'fields *; where name ~ "' + escape(game) + '";'
         print(data)
         response = requests.post(url, headers=headers, data=data)
+        print(response)
         game_info = json.dumps(response.json())
         print(game_info)
         return game_info
@@ -1087,6 +1096,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print(author + ": " + message)
         app.append_to_log(author + ": " + message)
         self.message_queue.append(author + ": " + message)
+        self.last_message[author.lower()] = message
 
         # If a chat message starts with an exclamation point, try to run it as a command
         if e.arguments[0].startswith('!'):
