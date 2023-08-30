@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
 
 def get_version():
-    return "1.65"  # Version Number
+    return "1.66"  # Version Number
 
 
 class TwitchBotGUI(tk.Tk):
@@ -1097,6 +1097,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         app.append_to_log(author + ": " + message)
         self.message_queue.append(author + ": " + message)
         self.last_message[author.lower()] = message
+
+        if author.lower() not in str(app.user_list.get(0, tk.END)):
+            self.users.append(author.lower())
+            app.user_list.insert(tk.END, author.lower())
+            app.user_count.config(text=app.user_list.size())
 
         # If a chat message starts with an exclamation point, try to run it as a command
         if e.arguments[0].startswith('!'):
